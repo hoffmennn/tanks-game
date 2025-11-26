@@ -1,3 +1,4 @@
+<!-- zmena -->
 <template>
     <div class="game-root">
         <canvas ref="canvasRef" id="gameCanvas" @mousedown="onMouseDown" @mousemove="onMouseMove"
