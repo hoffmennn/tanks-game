@@ -158,7 +158,8 @@
 
         function generateTerrain() {
             /*kreslime dve sinusoidy. Jednu vo velkej skale a druhu v malej 
-            pre male nerovnosti. V buducnosti mozme menenim konstant zvysovat uroven levelov (rovna mapa->oble kopce->strme caste svahy (? napad)*/
+            pre male nerovnosti. V buducnosti mozme menenim konstant zvysovat 
+            uroven levelov (rovna mapa->oble kopce->strme caste svahy (? napad)*/
             terrain = [];
             const phase1 = Math.random() * 100;
             const phase2 = Math.random() * 100;
@@ -230,20 +231,19 @@
         let gameActive = true;
 
         function drawTerrain() {
-            // 1. Define the surface path (Top Line) once
+
             const surfacePath = new Path2D();
             surfacePath.moveTo(0, terrain[0].y);
             for (let point of terrain) {
                 surfacePath.lineTo(point.x, point.y);
             }
             
-            // 2. Create the fill shape by copying the surface and closing the bottom
             const fillPath = new Path2D(surfacePath);
             fillPath.lineTo(canvas.width, canvas.height);
             fillPath.lineTo(0, canvas.height);
             fillPath.closePath();
             
-            // 3. Draw using the pre-calculated paths
+
             ctx.fillStyle = TERRAIN_COLOR;
             ctx.fill(fillPath);
             
@@ -253,18 +253,18 @@
         }
 
         function drawTank(tank) {
-            // Calculate rotation to match terrain slope
+            // vypocet uhla podla terenu
             const groundLeft = getTerrainY(tank.x);
             const groundRight = getTerrainY(tank.x + tank.width);
             const angle = Math.atan2(groundRight - groundLeft, tank.width);
 
             ctx.save();
-            // Rotate around the center of the tank
+            
+            // rotovat tank okolo stredu podla terenu
             ctx.translate(tank.x + tank.width / 2, tank.y + tank.height / 2);
             ctx.rotate(angle);
             ctx.translate(-tank.width / 2, -tank.height / 2);
 
-            // PROFESSIONAL UPGRADE: If a texture exists, draw the image instead of the box
             if (tank.texture) {
                 ctx.drawImage(tank.texture, 0, 0, tank.width, tank.height);
                 ctx.restore();
@@ -273,25 +273,26 @@
 
             const isEnemy = tank.color === '#DC143C';
 
-            // 1. Tracks (Treads)
+            // pasy
             ctx.fillStyle = '#2c2c2c';
             ctx.beginPath();
             if (ctx.roundRect) {
-                ctx.roundRect(0, tank.height - 10, tank.width, 10, 3);
+                ctx.roundRect(0, tank.height - 10, tank.width, 10, 5);
             } else {
                 ctx.fillRect(0, tank.height - 10, tank.width, 10);
             }
             ctx.fill();
             
-            // Wheels
+            // kolesa na pasoch
             ctx.fillStyle = '#555';
+            ctx.beginPath();
             for(let i = 6; i < tank.width; i += 12) {
-                ctx.beginPath();
+                ctx.moveTo(i + 3, tank.height - 5);
                 ctx.arc(i, tank.height - 5, 3, 0, Math.PI * 2);
-                ctx.fill();
             }
+            ctx.fill();
 
-            // 2. Main Body (Chassis)
+            // telo tanku
             ctx.fillStyle = tank.color;
             ctx.beginPath();
             ctx.moveTo(5, tank.height - 10);
@@ -301,12 +302,12 @@
             ctx.closePath();
             ctx.fill();
 
-            // 3. Turret (Dome)
+            // vezicka tanku
             ctx.beginPath();
             ctx.arc(tank.width / 2, tank.height - 22, 9, Math.PI, 0);
             ctx.fill();
             
-            // 4. Barrel
+            // hlaven - delo
             ctx.strokeStyle = '#1a1a1a';
             ctx.lineWidth = 4;
             ctx.lineCap = 'round';            
@@ -320,7 +321,7 @@
         }
 
         function drawProjectile(proj) {
-            ctx.fillStyle = '#FF4500';
+            ctx.fillStyle = '#ff0000';
             ctx.beginPath();
             ctx.arc(proj.x, proj.y, 5, 0, Math.PI * 2);
             ctx.fill();
@@ -342,12 +343,6 @@
                 ctx.stroke();
                 ctx.setLineDash([]);
                 
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(dragStart.x, dragStart.y);
-                ctx.lineTo(dragCurrent.x, dragCurrent.y);
-                ctx.stroke();
             }
         }
 
