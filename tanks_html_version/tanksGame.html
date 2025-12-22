@@ -120,6 +120,10 @@
                 <div>PC HP: <span id="enemyHP">100</span></div>
                 <div class="hp-fill" id="enemyHPBar" style="width: 100%"></div>
             </div>
+            <div class="hp-bar">
+                <div>Palivo: <span id="playerFuel">100</span>%</div>
+                <div class="hp-fill" id="playerFuelBar" style="width: 100%; background: #ffcc00;"></div>
+            </div>
         </div>
 
         <div id="windIndicator">
@@ -151,6 +155,7 @@
         const TANK_SPEED = 2;
         const POWER_SCALE = 0.04; 
         const DIFFICULTY = 1; // 0.5 - easy, 1 - medium, 2 - hard
+        const MAX_FUEL = 300; // Pixels of movement per turn
 
         let terrain = [];
         let windSpeed = 0;
@@ -197,8 +202,8 @@
             } else if (windSpeed < 0) {
                 arrow.textContent = '←';
                 arrow.style.color = '#4ecdc4';
-            } else {
-                arrow.textContent = '•';
+            } else if (Math.floor(windSpeed) === 0) {
+                arrow.textContent = '';
                 arrow.style.color = '#95e1d3';
             }
         }
@@ -213,7 +218,8 @@
             height: TANK_HEIGHT,
             hp: 100,
             color: '#2E8B57',
-            texture: null // Ready for upgrade: new Image()
+            texture: null, // Ready for upgrade: new Image()
+            fuel: MAX_FUEL
         };
 
         let enemyTank = {
@@ -223,7 +229,10 @@
             height: TANK_HEIGHT,
             hp: 100,
             color: '#DC143C',
-            texture: null // Ready for upgrade: new Image()
+            texture: null, // Ready for upgrade: new Image()
+            fuel: MAX_FUEL,
+            isMoving: false,
+            targetX: 0
         };
 
         let projectiles = [];
@@ -390,6 +399,21 @@
             canShoot = false;
         }
 
+        function startEnemyTurn() {
+            enemyTank.fuel = MAX_FUEL;
+            
+            // Calculate random movement within fuel limits
+            // Move randomly left or right, but stay within screen bounds
+            const moveDir = Math.random() < 0.5 ? -1 : 1;
+            const moveDist = Math.random() * MAX_FUEL;
+            
+            let targetX = enemyTank.x + (moveDir * moveDist);
+            targetX = Math.max(0, Math.min(canvas.width - TANK_WIDTH, targetX));
+            
+            enemyTank.targetX = targetX;
+            enemyTank.isMoving = true;
+        }
+
         /* aktualne pouzivame jednoduchy AI algoritmus ktory presne odhadne idealnu
         strelu, ale pridavame nahodny element aby netriafala presne. */
         /*v buducnosti mozme zapracovat metodu pamatania si predoslej strely, podla ktorej
@@ -443,7 +467,7 @@
                 });
                 
                 canShoot = false;
-            }, 1500);
+            }, 1000); // Wait 1 second after moving before shooting
         }
 
         function updateProjectiles() {
@@ -465,20 +489,23 @@
                     updateTurnIndicator();
                     
                     if (!isPlayerTurn && gameActive) {
-                        enemyShoot();
+                        startEnemyTurn();
+                    } else {
+                        playerTank.fuel = MAX_FUEL;
+                        updateUI();
                     }
                     continue;
                 }
                 
                 const targetTank = proj.isPlayer ? enemyTank : playerTank;
-                
+
                 if (proj.x > targetTank.x && proj.x < targetTank.x + targetTank.width &&
                     proj.y > targetTank.y && proj.y < targetTank.y + targetTank.height) {
                     
                     targetTank.hp -= 20;
                     projectiles.splice(i, 1);
                     
-                    updateHP();
+                    updateUI();
                     
                     canShoot = true;
                     isPlayerTurn = !isPlayerTurn;
@@ -487,7 +514,10 @@
                     if (targetTank.hp <= 0) {
                         endGame(proj.isPlayer);
                     } else if (!isPlayerTurn && gameActive) {
-                        enemyShoot();
+                        startEnemyTurn();
+                    } else {
+                        playerTank.fuel = MAX_FUEL;
+                        updateUI();
                     }
                 }
             }
@@ -500,11 +530,11 @@
                 indicator.style.color = '#00ff00';
             } else {
                 indicator.textContent = 'Na rade: PC';
-                indicator.style.color = '#ff6b6b';
+                indicator.style.color = '#ff001e';
             }
         }
 
-        function updateHP() {
+        function updateUI() {
             document.getElementById('playerHP').textContent = Math.max(0, playerTank.hp);
             document.getElementById('enemyHP').textContent = Math.max(0, enemyTank.hp);
             document.getElementById('playerHPBar').style.width = Math.max(0, playerTank.hp) + '%';
@@ -523,11 +553,17 @@
             if (enemyTank.hp < 25) {
                 document.getElementById('enemyHPBar').style.background = '#ff0000';
             }
+
+            // Update Fuel UI
+            const fuelPct = Math.max(0, (playerTank.fuel / MAX_FUEL) * 100);
+            document.getElementById('playerFuelBar').style.width = fuelPct + '%';
+            document.getElementById('playerFuel').textContent = Math.floor(fuelPct);
         }
 
         function endGame(playerWon) {
             gameActive = false;
             document.getElementById('gameOverText').textContent = playerWon ? 'VÍŤAZSTVO!' : 'PREHRA!';
+            document.getElementById('gameOverText').style.color = playerWon ? '#00ff00' : '#ff0000';
             document.getElementById('gameOver').style.display = 'block';
         }
 
@@ -535,6 +571,8 @@
             generateTerrain();
             generateWind();
             
+            playerTank.fuel = MAX_FUEL;
+            enemyTank.fuel = MAX_FUEL;
             playerTank.hp = 100;
             enemyTank.hp = 100;
             playerTank.x = 100;
@@ -550,18 +588,40 @@
             document.getElementById('gameOver').style.display = 'none';
             document.getElementById('playerHPBar').style.background = '#00ff00';
             document.getElementById('enemyHPBar').style.background = '#00ff00';
-            updateHP();
+            updateUI();
             updateTurnIndicator();
         }
 
         function updateTankPosition() {
+            // Player Movement
             if (keysPressed['ArrowLeft'] && isPlayerTurn && canShoot) {
-                playerTank.x = Math.max(0, playerTank.x - TANK_SPEED);
-                playerTank.y = getTerrainY(playerTank.x + playerTank.width / 2) - TANK_HEIGHT;
+                if (playerTank.fuel > 0) {
+                    playerTank.x = Math.max(0, playerTank.x - TANK_SPEED);
+                    playerTank.y = getTerrainY(playerTank.x + playerTank.width / 2) - TANK_HEIGHT;
+                    playerTank.fuel -= TANK_SPEED;
+                    updateUI();
+                }
             }
             if (keysPressed['ArrowRight'] && isPlayerTurn && canShoot) {
-                playerTank.x = Math.min(canvas.width - playerTank.width, playerTank.x + TANK_SPEED);
-                playerTank.y = getTerrainY(playerTank.x + playerTank.width / 2) - TANK_HEIGHT;
+                if (playerTank.fuel > 0) {
+                    playerTank.x = Math.min(canvas.width - playerTank.width, playerTank.x + TANK_SPEED);
+                    playerTank.y = getTerrainY(playerTank.x + playerTank.width / 2) - TANK_HEIGHT;
+                    playerTank.fuel -= TANK_SPEED;
+                    updateUI();
+                }
+            }
+
+            // Enemy AI Movement
+            if (!isPlayerTurn && enemyTank.isMoving) {
+                const dx = enemyTank.targetX - enemyTank.x;
+                if (Math.abs(dx) <= TANK_SPEED) {
+                    enemyTank.x = enemyTank.targetX;
+                    enemyTank.isMoving = false;
+                    enemyShoot(); // Movement finished, now aim and shoot
+                } else {
+                    enemyTank.x += Math.sign(dx) * TANK_SPEED;
+                    enemyTank.y = getTerrainY(enemyTank.x + enemyTank.width / 2) - TANK_HEIGHT;
+                }
             }
         }
 
