@@ -150,7 +150,7 @@
         const TANK_HEIGHT = 30;
         const TANK_SPEED = 2;
         const POWER_SCALE = 0.04; 
-        const DIFFICULTY = 2; // 0.5 - easy, 1 - medium, 2 - hard
+        const DIFFICULTY = 1; // 0.5 - easy, 1 - medium, 2 - hard
 
         let terrain = [];
         let windSpeed = 0;
@@ -414,14 +414,20 @@
                 // A lower divider means a higher, loftier arc (slower shot).
                 // A higher divider means a direct, fast shot (laser).
                 // Let's vary it slightly so the AI chooses different arcs.
-                const speedFactor = 12 + Math.random() * 12; 
+                const speedFactor = 12 + Math.random() * 10; 
                 const flightTime = Math.abs(dx) / speedFactor;
 
                 // Inverse Physics Formulas
                 // X = x0 + vx*t + 0.5*wind*t^2  => Solve for vx
                 // Y = y0 + vy*t + 0.5*gravity*t^2 => Solve for vy
-                let bestVx = (dx - 0.5 * windSpeed * Math.pow(flightTime, 2)) / flightTime;
-                let bestVy = (dy - 0.5 * GRAVITY * Math.pow(flightTime, 2)) / flightTime;
+
+                // Correction: The game loop adds gravity/wind step-by-step (Discrete Math), not continuously.
+                // We adjust the formula to account for the "off-by-one" errors in the loop.
+                /* For Gravity (Y): Since gravity is applied after movement, 
+                we subtract t from t^2. 
+                For Wind (X): Since wind is applied before movement, we add t to t^2. */
+                let bestVx = (dx - 0.5 * windSpeed * (Math.pow(flightTime, 2) + flightTime)) / flightTime;
+                let bestVy = (dy - 0.5 * GRAVITY * (Math.pow(flightTime, 2) - flightTime)) / flightTime;
 
                 // Without this, the AI will never miss.
                 const errorMargin = 1.5; 
