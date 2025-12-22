@@ -430,7 +430,7 @@
                 let bestVy = (dy - 0.5 * GRAVITY * (Math.pow(flightTime, 2) - flightTime)) / flightTime;
 
                 // Without this, the AI will never miss.
-                const errorMargin = 1.5; 
+                const errorMargin = 1.65; 
                 bestVx += (Math.random() - 0.5) * errorMargin / DIFFICULTY;
                 bestVy += (Math.random() - 0.5) * errorMargin / DIFFICULTY;
 
