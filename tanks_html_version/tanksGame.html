@@ -144,11 +144,13 @@
         canvas.height = window.innerHeight;
 
         const GROUND_Y = canvas.height * 0.7;
+        const TERRAIN_COLOR = '#654321';
         const GRAVITY = 0.5;
         const TANK_WIDTH = 60;
         const TANK_HEIGHT = 30;
         const TANK_SPEED = 2;
-        const TERRAIN_COLOR = '#654321'; // Dark Brown
+        const POWER_SCALE = 0.04; 
+        const DIFFICULTY = 2; // 0.5 - easy, 1 - medium, 2 - hard
 
         let terrain = [];
         let windSpeed = 0;
@@ -374,8 +376,8 @@
             const startX = tank.x + tank.width / 2;
             const startY = tank.y;
             
-            const velocityX = (targetX - startX) * 0.08;
-            const velocityY = (targetY - startY) * 0.08;
+            const velocityX = (targetX - startX) * POWER_SCALE;
+            const velocityY = (targetY - startY) * POWER_SCALE;
             
             projectiles.push({
                 x: startX,
@@ -388,6 +390,11 @@
             canShoot = false;
         }
 
+        /* aktualne pouzivame jednoduchy AI algoritmus ktory presne odhadne idealnu
+        strelu, ale pridavame nahodny element aby netriafala presne. */
+        /*v buducnosti mozme zapracovat metodu pamatania si predoslej strely, podla ktorej
+        upravuje svoju dalsiu, aby mal vyznam hracov pohyb po mape */
+        /* alebo mozme skalovat error_margin podla vzdialenosti medzi hracom a AI*/
         function enemyShoot() {
             if (!gameActive || !canShoot) return;
             
@@ -395,23 +402,42 @@
                 const startX = enemyTank.x + enemyTank.width / 2;
                 const startY = enemyTank.y;
                 
+                // player position
                 const targetX = playerTank.x + playerTank.width / 2;
-                const randomAngle = (Math.random() - 0.5) * 1.5;
-                const randomPower = 8 + Math.random() * 4;
-                
-                const velocityX = -(randomPower + randomAngle);
-                const velocityY = -(randomPower * 1.2) + (Math.random() - 0.5) * 2;
-                
+                const targetY = playerTank.y;
+
+                const dx = targetX - startX;
+                const dy = targetY - startY;
+
+                // Estimate Flight Time
+                // We assume the bullet travels roughly X pixels per frame horizontally.
+                // A lower divider means a higher, loftier arc (slower shot).
+                // A higher divider means a direct, fast shot (laser).
+                // Let's vary it slightly so the AI chooses different arcs.
+                const speedFactor = 12 + Math.random() * 12; 
+                const flightTime = Math.abs(dx) / speedFactor;
+
+                // Inverse Physics Formulas
+                // X = x0 + vx*t + 0.5*wind*t^2  => Solve for vx
+                // Y = y0 + vy*t + 0.5*gravity*t^2 => Solve for vy
+                let bestVx = (dx - 0.5 * windSpeed * Math.pow(flightTime, 2)) / flightTime;
+                let bestVy = (dy - 0.5 * GRAVITY * Math.pow(flightTime, 2)) / flightTime;
+
+                // Without this, the AI will never miss.
+                const errorMargin = 1.5; 
+                bestVx += (Math.random() - 0.5) * errorMargin / DIFFICULTY;
+                bestVy += (Math.random() - 0.5) * errorMargin / DIFFICULTY;
+
                 projectiles.push({
                     x: startX,
                     y: startY,
-                    vx: velocityX,
-                    vy: velocityY,
+                    vx: bestVx,
+                    vy: bestVy,
                     isPlayer: false
                 });
                 
                 canShoot = false;
-            }, 1000);
+            }, 1500);
         }
 
         function updateProjectiles() {
@@ -589,8 +615,8 @@
             if (dragStart) {
                 dragCurrent = {x, y};
                 
-                const velX = (x - dragStart.x) * 0.08;
-                const velY = (y - dragStart.y) * 0.08;
+                const velX = (x - dragStart.x) * POWER_SCALE;
+                const velY = (y - dragStart.y) * POWER_SCALE;
                 trajectoryPoints = calculateTrajectory(dragStart.x, dragStart.y, velX, velY);
             }
         });
