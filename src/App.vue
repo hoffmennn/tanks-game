@@ -1,7 +1,8 @@
 <script setup></script>
 
 <template>
-  <span></span>
+  <RouterView />
 </template>
+
 
 <style scoped></style>
