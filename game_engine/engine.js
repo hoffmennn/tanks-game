@@ -1,165 +1,34 @@
-<!DOCTYPE html>
-<html lang="sk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TanksGame</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: #5f9ab1;
-            overflow: hidden;
-            user-select: none;
-        }
-
-        #gameCanvas {
-            display: block;
-            margin: 0 auto;
-            background: transparent;
-            cursor: crosshair;
-        }
-
-        #ui {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            font-size: 18px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        }
-
-        #windIndicator {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            color: white;
-            font-size: 24px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            background: rgba(0,0,0,0.5);
-            padding: 15px;
-            border-radius: 5px;
-        }
-
-        #turnIndicator {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-size: 22px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            background: rgba(0,0,0,0.5);
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-
-        .hp-bar {
-            margin: 10px 0;
-            background: rgba(0,0,0,0.5);
-            padding: 10px;
-            border-radius: 5px;
-        }
-
-        .hp-fill {
-            height: 20px;
-            background: #00ff00;
-            border-radius: 3px;
-            transition: width 0.3s;
-        }
-
-        #gameOver {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            color: white;
-            padding: 40px;
-            border-radius: 10px;
-            text-align: center;
-            display: none;
-        }
-
-        #gameOver h1 {
-            font-size: 48px;
-            margin-bottom: 20px;
-        }
-
-        #gameOver button {
-            font-size: 24px;
-            padding: 15px 30px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-
-        #gameOver button:hover {
-            background: #45a049;
-        }
-    </style>
-</head>
-<body>
-        <canvas id="gameCanvas"></canvas>
-        
-        <div id="ui">
-            <div class="hp-bar">
-                <div>Hráč HP: <span id="playerHP">100</span></div>
-                <div class="hp-fill" id="playerHPBar" style="width: 100%"></div>
-            </div>
-            <div class="hp-bar">
-                <div>PC HP: <span id="enemyHP">100</span></div>
-                <div class="hp-fill" id="enemyHPBar" style="width: 100%"></div>
-            </div>
-            <div class="hp-bar">
-                <div>Palivo: <span id="playerFuel">100</span>%</div>
-                <div class="hp-fill" id="playerFuelBar" style="width: 100%; background: #ffcc00;"></div>
-            </div>
-        </div>
-
-        <div id="windIndicator">
-            <div>Vietor: <span id="windValue">0</span> m/s</div>
-            <div id="windArrow" style="font-size: 32px;">→</div>
-        </div>
-
-        <div id="turnIndicator">
-            <span id="currentTurn">Na rade: HRÁČ</span>
-        </div>
-
-        <div id="gameOver">
-            <h1 id="gameOverText"></h1>
-            <button onclick="restartGame()">Hrať znova</button>
-        </div>
-
-    <script>
+export async function initGame() {
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        const GROUND_Y = canvas.height * 0.7;
-        const TERRAIN_COLOR = '#654321';
-        const TERRAIN_DIVERSITY = 1; // range: 0 – 10
-        const GRAVITY = 0.5;
-        const TANK_WIDTH = 60;
-        const TANK_HEIGHT = 30;
-        const TANK_SPEED = 2;
-        const POWER_SCALE = 0.04; 
-        const DIFFICULTY = 1; // 0.5 - easy, 1 - medium, 2 - hard
-        const MAX_FUEL = 300; // Pixels of movement per turn
+        let config = {};
+        try {
+            const response = await fetch('./configs/gameConstans.json');
+            config = await response.json();
+        } catch (error) {
+            console.error('Error loading game settings:', error);
+        }
+
+        const GROUND_Y = canvas.height * config.GROUND_Y_FACTOR;
+        const TERRAIN_COLOR = config.TERRAIN_COLOR;
+        const TERRAIN_DIVERSITY = config.TERRAIN_DIVERSITY;
+        const GRAVITY = config.GRAVITY;
+        const TANK_WIDTH = config.TANK_WIDTH;
+        const TANK_HEIGHT = config.TANK_HEIGHT;
+        const TANK_SPEED = config.TANK_SPEED;
+        const POWER_SCALE = config.POWER_SCALE; 
+        const DIFFICULTY = config.DIFFICULTY; // 0.5 - easy, 1 - medium, 2 - hard
+        const MAX_FUEL = config.MAX_FUEL; // Pixels of movement per turn
+        const WIND_SPEED_RANDOM = config.WIND_SPEED_RANDOM;
+        const WIND_SPEED = 
+        WIND_SPEED_RANDOM ? (Math.random() - 0.5) * 0.4 : 
+        config.WIND_SPEED_FIXED/*-1 will make 100 m/s to the left, +1 will make 100 m/s to the right*/;
 
         let terrain = [];
-        let windSpeed = 0;
         let isPlayerTurn = true;
         let canShoot = true;
         let keysPressed = {};
@@ -178,15 +47,53 @@
                 let y = GROUND_Y;
 
                 if (TERRAIN_DIVERSITY > 0) {
-                    y += Math.sin(x * 0.006 + phase1) * largeHillAmplitude;
-                    y += Math.sin(x * 0.02 + phase2) * smallBumpAmplitude;
+                    y += Math.sin(x * 0.006 + phase1) * largeHillAmplitude; //TODO: urobit frekvenciu zavislu od sirky obrazovky a dat do premennej
+                    y += Math.sin(x * 0.02 + phase2) * smallBumpAmplitude; // TODO: to iste
                 }
 
                 y = Math.max(100, Math.min(canvas.height - 50, y));
                 terrain.push({ x, y });
             }
         }
+        // AI fix:
+        // function generateTerrain() {
+        //     terrain = [];
+        //     const phase1 = Math.random() * 100;
+        //     const phase2 = Math.random() * 100;
 
+        //     // --- VERTICAL FIT (From previous answer) ---
+        //     let currentGroundY = GROUND_Y;
+        //     if (TERRAIN_DIVERSITY > 5) currentGroundY = canvas.height * 0.6;
+
+        //     const spaceAbove = currentGroundY - 50; 
+        //     const spaceBelow = (canvas.height - 50) - currentGroundY;
+        //     const maxSafeAmplitude = Math.min(spaceAbove, spaceBelow);
+            
+        //     // Scale height based on diversity
+        //     let desiredAmplitude = TERRAIN_DIVERSITY * 20;
+        //     const actualAmplitude = Math.min(desiredAmplitude, maxSafeAmplitude);
+
+        //     // --- HORIZONTAL FIT (New Mobile Fix) ---
+        //     // Instead of fixed 0.006, we calculate frequency based on screen width.
+        //     // This formula ensures we always see ~1.5 big hills per screen width.
+        //     // Math.PI * 2 represents one full sine wave cycle.
+        //     const waveCyclesPerScreen = 1.5; 
+        //     const frequency = (Math.PI * 2 * waveCyclesPerScreen) / canvas.width;
+
+        //     for (let x = 0; x <= canvas.width; x += 5) {
+        //         let y = currentGroundY;
+
+        //         if (TERRAIN_DIVERSITY > 0) {
+        //             // Use the calculated 'frequency' instead of 0.006
+        //             y += Math.sin(x * frequency + phase1) * (actualAmplitude * 0.8);
+                    
+        //             // For the small bumps, we just multiply the base freq by ~3
+        //             y += Math.sin(x * (frequency * 3.5) + phase2) * (actualAmplitude * 0.2);
+        //         }
+
+        //         terrain.push({ x, y });
+        //     }
+        // }
 
         function getTerrainY(x) {
             const step = 5;
@@ -199,24 +106,24 @@
         }
 
         function generateWind() {
-            windSpeed = (Math.random() - 0.5) * 0.4;
-            document.getElementById('windValue').textContent = Math.abs(windSpeed * 100).toFixed(0);
+            document.getElementById('windValue').textContent = Math.abs(WIND_SPEED * 100).toFixed(0);
             
             const arrow = document.getElementById('windArrow');
-            if (windSpeed > 0) {
+            if (WIND_SPEED > 0) {
                 arrow.textContent = '→';
                 arrow.style.color = '#ff6b6b';
-            } else if (windSpeed < 0) {
+            } else if (WIND_SPEED < 0) {
                 arrow.textContent = '←';
                 arrow.style.color = '#4ecdc4';
-            } else if (Math.floor(windSpeed) === 0) {
+            } else if (Math.floor(WIND_SPEED) === 0) {
                 arrow.textContent = '';
                 arrow.style.color = '#95e1d3';
             }
         }
 
-        generateTerrain();
-        generateWind();
+        // Initial generation is now handled by the first call to restartGame() or manual call
+        // generateTerrain(); 
+        // generateWind();
 
         let playerTank = {
             x: 100,
@@ -457,7 +364,7 @@
                 /* For Gravity (Y): Since gravity is applied after movement, 
                 we subtract t from t^2. 
                 For Wind (X): Since wind is applied before movement, we add t to t^2. */
-                let bestVx = (dx - 0.5 * windSpeed * (Math.pow(flightTime, 2) + flightTime)) / flightTime;
+                let bestVx = (dx - 0.5 * WIND_SPEED * (Math.pow(flightTime, 2) + flightTime)) / flightTime;
                 let bestVy = (dy - 0.5 * GRAVITY * (Math.pow(flightTime, 2) - flightTime)) / flightTime;
 
                 // Without this, the AI will never miss.
@@ -481,7 +388,7 @@
             for (let i = projectiles.length - 1; i >= 0; i--) {
                 const proj = projectiles[i];
                 
-                proj.vx += windSpeed;
+                proj.vx += WIND_SPEED;
                 
                 proj.x += proj.vx;
                 proj.y += proj.vy;
@@ -718,7 +625,9 @@
             playerTank.y = getTerrainY(playerTank.x + TANK_WIDTH / 2) - TANK_HEIGHT;
         });
 
+        // Start the game
+        restartGame(); 
         gameLoop();
-    </script>
-</body>
-</html>
+
+        return { restartGame };
+}

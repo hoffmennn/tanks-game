@@ -1,0 +1,14 @@
+{
+    "GROUND_Y_FACTOR": 0.7,
+    "TERRAIN_COLOR": "#654321",
+    "TERRAIN_DIVERSITY": 8,
+    "GRAVITY": 0.5,
+    "TANK_WIDTH": 60,
+    "TANK_HEIGHT": 30,
+    "TANK_SPEED": 2,
+    "POWER_SCALE": 0.04, 
+    "DIFFICULTY": 1,
+    "MAX_FUEL": 290,
+    "WIND_SPEED_RANDOM": true,
+    "WIND_SPEED_FIXED": 0
+}
