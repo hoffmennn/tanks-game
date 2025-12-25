@@ -1,0 +1,18 @@
+import { createRouter, createWebHistory } from "vue-router"
+
+import Landing from "@/views/Landing.vue"
+import Levels from "@/views/Levels.vue"
+import HowToPlay from "@/views/HowToPlay.vue"
+import Stats from "@/views/Stats.vue"
+
+const routes = [
+  { path: "/", component: Landing },
+  { path: "/levels", component: Levels },
+  { path: "/how-to-play", component: HowToPlay },
+  { path: "/stats", component: Stats }
+]
+
+export default createRouter({
+  history: createWebHistory(),
+  routes
+})
