@@ -149,6 +149,7 @@
 
         const GROUND_Y = canvas.height * 0.7;
         const TERRAIN_COLOR = '#654321';
+        const TERRAIN_DIVERSITY = 1; // range: 0 – 10
         const GRAVITY = 0.5;
         const TANK_WIDTH = 60;
         const TANK_HEIGHT = 30;
@@ -164,22 +165,28 @@
         let keysPressed = {};
 
         function generateTerrain() {
-            /*kreslime dve sinusoidy. Jednu vo velkej skale a druhu v malej 
-            pre male nerovnosti. V buducnosti mozme menenim konstant zvysovat 
-            uroven levelov (rovna mapa->oble kopce->strme caste svahy (? napad)*/
             terrain = [];
+
             const phase1 = Math.random() * 100;
             const phase2 = Math.random() * 100;
 
+            // scale amplitudes based on diversity
+            const largeHillAmplitude = TERRAIN_DIVERSITY * 12; // max ~120
+            const smallBumpAmplitude = TERRAIN_DIVERSITY * 4;  // max ~40
+
             for (let x = 0; x <= canvas.width; x += 5) {
                 let y = GROUND_Y;
-                y += Math.sin(x * 0.006 + phase1) * 90; // Large hills
-                y += Math.sin(x * 0.02 + phase2) * 30;  // Small bumps
-                
+
+                if (TERRAIN_DIVERSITY > 0) {
+                    y += Math.sin(x * 0.006 + phase1) * largeHillAmplitude;
+                    y += Math.sin(x * 0.02 + phase2) * smallBumpAmplitude;
+                }
+
                 y = Math.max(100, Math.min(canvas.height - 50, y));
-                terrain.push({x, y});
+                terrain.push({ x, y });
             }
         }
+
 
         function getTerrainY(x) {
             const step = 5;
