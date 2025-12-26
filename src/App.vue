@@ -1,8 +1,20 @@
-<script setup></script>
-
 <template>
-  <RouterView />
+  <CanvasBackground :active="showBackground" />
+
+  <div class="app-content">
+    <RouterView />
+  </div>
+  
 </template>
 
+<script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import CanvasBackground from '@/components/CanvasBackground.vue'
 
-<style scoped></style>
+const route = useRoute()
+
+const showBackground = computed(() => {
+  return route.name !== 'game'
+})
+</script>
