@@ -3,14 +3,22 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
+
+
+const props = defineProps({
+  active: {
+    type: Boolean,
+    default: true
+  }
+})
 
 const canvas = ref(null)
 let ctx
 let animationId
 let spawnInterval
 
-// ====== PÔVODNÝ KÓD (ZACHOVANÝ) ======
+
 
 const TERRAIN_COLOR = '#5A8C4D'
 const TANK_WIDTH = 60
@@ -20,6 +28,18 @@ const colors = ['#2E7D32', '#1976D2', '#C62828', '#F57C00', '#5E35B1', '#00796B'
 let GROUND_Y
 let terrain = []
 let tanks = []
+
+
+watch(
+  () => props.active,
+  (isActive) => {
+    if (isActive) {
+      gameLoop()
+    } else {
+      cancelAnimationFrame(animationId)
+    }
+  }
+)
 
 function generateTerrain() {
   terrain = []
@@ -165,6 +185,8 @@ function draw() {
 }
 
 function gameLoop() {
+  if (!props.active) return
+
   updateTanks()
   draw()
   animationId = requestAnimationFrame(gameLoop)
@@ -197,7 +219,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style>
 .bg-canvas {
   position: fixed;
   inset: 0;
@@ -205,7 +227,7 @@ onUnmounted(() => {
   height: 100vh;
   z-index: 0;
   background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%);
-  background: linear-gradient(#135874 0%, #003146 100%);
+  /*background: linear-gradient(#135874 0%, #003146 100%);
   /* Juraj zmenil pre bolest oci, ak sa nepaci dame naspat alebo upravime*/
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <section class="landing">
-    <CanvasBackground />
+    
 
     <div class="content">
       <h1>Tanks</h1>
@@ -15,9 +15,6 @@
   </section>
 </template>
 
-<script setup>
-import CanvasBackground from '@/components/CanvasBackground.vue'
-</script>
 
 <style scoped>
 .landing {
@@ -39,18 +36,6 @@ import CanvasBackground from '@/components/CanvasBackground.vue'
   color: #e8f5e9;
 }
 
-h1 {
-  font-size: 56px;
-  margin-bottom: 40px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-
-  text-shadow:
-    0 0 5px rgba(0, 0, 0, 0.297),
-    0 0 10px rgba(0, 0, 0, 0.182);
-  color: #cbe9ce;
-  /* Juraj zmenil, predtym bolo default */
-}
 
 .menu {
   display: flex;
