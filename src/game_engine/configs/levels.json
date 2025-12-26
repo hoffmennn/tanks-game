@@ -1,0 +1,18 @@
+[
+    {
+        "id": 1,
+        "name": "romantic sunset",
+        "GROUND_Y_FACTOR": 0.7,
+        "TERRAIN_COLOR": "#5fc344",
+        "TERRAIN_DIVERSITY": 3,
+        "GRAVITY": 0.5,
+        "TANK_WIDTH": 60,
+        "TANK_HEIGHT": 30,
+        "TANK_SPEED": 2,
+        "POWER_SCALE": 0.04, 
+        "DIFFICULTY": 0.5,
+        "MAX_FUEL": 320,
+        "WIND_SPEED_RANDOM": false,
+        "WIND_SPEED_FIXED": 0
+    }
+]
