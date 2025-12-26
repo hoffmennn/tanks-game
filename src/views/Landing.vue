@@ -6,6 +6,7 @@
       <h1>Tanks</h1>
 
       <nav class="menu">
+        <RouterLink to="/game">Quick play</RouterLink>
         <RouterLink to="/levels">Levels</RouterLink>
         <RouterLink to="/how-to-play">How to play</RouterLink>
         <RouterLink to="/stats">Stats</RouterLink>
@@ -47,6 +48,8 @@ h1 {
   text-shadow:
     0 0 5px rgba(0, 0, 0, 0.297),
     0 0 10px rgba(0, 0, 0, 0.182);
+  color: #cbe9ce;
+  /* Juraj zmenil, predtym bolo default */
 }
 
 .menu {
@@ -114,5 +117,4 @@ h1 {
     padding: 12px 20px;
   }
 }
-
 </style>

@@ -1,11 +1,11 @@
 <script setup>
 import { onMounted } from 'vue';
-import { initGame } from '../../game_engine/engine.js';
+import { initGame } from './engine.js';
 
 let gameControls = null;
 
-onMounted(() => {
-    gameControls = initGame();
+onMounted(async () => {
+    gameControls = await initGame();
 });
 
 const triggerRestart = () => {

@@ -205,5 +205,7 @@ onUnmounted(() => {
   height: 100vh;
   z-index: 0;
   background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%);
+  background: linear-gradient(#135874 0%, #003146 100%);
+  /* Juraj zmenil pre bolest oci, ak sa nepaci dame naspat alebo upravime*/
 }
 </style>

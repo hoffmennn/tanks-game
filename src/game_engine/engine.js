@@ -1,17 +1,13 @@
-export async function initGame() {
+import gameConfig from './configs/gameConstans.json';
+
+export function initGame() {
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        let config = {};
-        try {
-            const response = await fetch('./configs/gameConstans.json');
-            config = await response.json();
-        } catch (error) {
-            console.error('Error loading game settings:', error);
-        }
+        const config = gameConfig;
 
         const GROUND_Y = canvas.height * config.GROUND_Y_FACTOR;
         const TERRAIN_COLOR = config.TERRAIN_COLOR;
@@ -24,7 +20,7 @@ export async function initGame() {
         const DIFFICULTY = config.DIFFICULTY; // 0.5 - easy, 1 - medium, 2 - hard
         const MAX_FUEL = config.MAX_FUEL; // Pixels of movement per turn
         const WIND_SPEED_RANDOM = config.WIND_SPEED_RANDOM;
-        const WIND_SPEED = 
+        let WIND_SPEED = 
         WIND_SPEED_RANDOM ? (Math.random() - 0.5) * 0.4 : 
         config.WIND_SPEED_FIXED/*-1 will make 100 m/s to the left, +1 will make 100 m/s to the right*/;
 
@@ -106,6 +102,8 @@ export async function initGame() {
         }
 
         function generateWind() {
+            WIND_SPEED = WIND_SPEED_RANDOM ? (Math.random() - 0.5) * 0.4 : config.WIND_SPEED_FIXED;
+            
             document.getElementById('windValue').textContent = Math.abs(WIND_SPEED * 100).toFixed(0);
             
             const arrow = document.getElementById('windArrow');
