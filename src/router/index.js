@@ -11,7 +11,7 @@ const routes = [
   { path: "/levels", component: Levels },
   { path: "/how-to-play", component: HowToPlay },
   { path: "/stats", component: Stats },
-  { path: "/game", name: 'game', component: Game }
+  { path: "/game/:id", name: 'game', component: Game , props: true },
 ]
 
 export default createRouter({
