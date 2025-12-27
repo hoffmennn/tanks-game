@@ -442,6 +442,13 @@ export function initGame(level = {}) {
                 proj.y > targetTank.y &&
                 proj.y < targetTank.y + targetTank.height
             ) {
+                targetTank.color = '#ffffff'
+                setTimeout(() => {
+                    targetTank.color =
+                        targetTank === playerTank
+                            ? config.PLAYER_TANK_COLOR
+                            : config.ENEMY_TANK_COLOR
+                }, 100)
                 targetTank.hp -= 20
                 projectiles.splice(i, 1)
 
