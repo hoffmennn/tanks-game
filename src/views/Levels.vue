@@ -25,10 +25,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 20px;
-  font-family: sans-serif;
+
+  padding: 80px 20px 40px; /* miesto pre HomeButton */
 }
 
 /* Zoradenie kariet pod seba */
