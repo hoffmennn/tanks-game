@@ -34,7 +34,7 @@ function startQuickPlay() {
 <style scoped>
 .landing {
   height: 100vh;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .content {
@@ -44,7 +44,6 @@ function startQuickPlay() {
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
 
   text-align: center;
