@@ -48,6 +48,20 @@
         "name": "desert storm",
         "GROUND_Y_FACTOR": 0.75,
         "TERRAIN_COLOR": "#f3e087",
-        "BACKGROUND_COLOR": "linear-gradient(180deg, rgba(255, 223, 128, 1) 0%, rgba(255, 183, 76, 1) 50%, rgba(194, 123, 0, 1) 100%)"
+        "BACKGROUND_COLOR": "linear-gradient(to bottom, #ad9a75 0%, #e3d1a8 100%), repeating-linear-gradient(75deg, transparent, transparent 10px, rgba(194, 178, 128, 0.2) 10px, rgba(194, 178, 128, 0.2) 20px, transparent 20px, transparent 30px, rgba(255, 248, 220, 0.15) 30px, rgba(255, 248, 220, 0.15) 40px), #d4c4a8",
+        "TERRAIN_DIVERSITY": 3,
+        "GRAVITY": 0.5,
+        "TANK_WIDTH": 60,
+        "TANK_HEIGHT": 30,
+        "TANK_SPEED": 2,
+        "POWER_SCALE": 0.04,
+        "DIFFICULTY": 1,
+        "MAX_FUEL": 280,
+        "WIND_SPEED_RANDOM": false,
+        "WIND_SPEED_FIXED": -0.5,
+        "PLAYER_TANK_COLOR": "#DAA590",
+        "ENEMY_TANK_COLOR": "#A52A2A",
+        "PROJECTILE_COLOR": "#000000",
+        "TRAJECTORY_COLOR": "#000000"
     }
 ]
