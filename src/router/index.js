@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 import Landing from '@/views/Landing.vue'
 import Levels from '@/views/Levels.vue'
@@ -15,6 +15,6 @@ const routes = [
 ]
 
 export default createRouter({
-    history: createWebHistory(),
+    history: createWebHashHistory(),
     routes,
 })

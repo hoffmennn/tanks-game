@@ -6,6 +6,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig({
+    base: './',
     plugins: [vue(), vueDevTools()],
     resolve: {
         alias: {
@@ -14,5 +15,14 @@ export default defineConfig({
     },
     server: {
         host: '0.0.0.0',
+    },
+    build: {
+        outDir: 'dist',
+        sourcemap: false,
+        rollupOptions: {
+            output: {
+                manualChunks: undefined,
+            },
+        },
     },
 })

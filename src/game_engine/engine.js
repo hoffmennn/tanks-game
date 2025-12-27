@@ -187,8 +187,11 @@ export function initGame(level = {}) {
 
     function drawTank(tank) {
         // vypocet uhla podla terenu
-        const groundLeft = getTerrainY(tank.x)
-        const groundRight = getTerrainY(tank.x + tank.width)
+        // Clamp sampling near edges to avoid extreme slopes causing twists
+        const sampleLeftX = Math.max(0, Math.min(tank.x, canvas.width - 5))
+        const sampleRightX = Math.max(5, Math.min(tank.x + tank.width, canvas.width - 5))
+        const groundLeft = getTerrainY(sampleLeftX)
+        const groundRight = getTerrainY(sampleRightX)
         const angle = Math.atan2(groundRight - groundLeft, tank.width)
 
         ctx.save()
@@ -328,7 +331,10 @@ export function initGame(level = {}) {
 
         // Calculate random movement within fuel limits
         // Move randomly left or right, but stay within screen bounds
-        const moveDir = Math.random() < 0.5 ? -1 : 1
+        // If the enemy is stuck near the right edge, avoid choosing rightward movement
+        const nearRightEdge = enemyTank.x >= canvas.width - TANK_WIDTH
+        let moveDir = Math.random() < 0.5 ? -1 : 1
+        if (nearRightEdge) moveDir = -1
         const moveDist = Math.random() * MAX_FUEL
 
         let targetX = enemyTank.x + moveDir * moveDist
@@ -363,7 +369,14 @@ export function initGame(level = {}) {
             // A higher divider means a direct, fast shot (laser).
             // Let's vary it slightly so the AI chooses different arcs.
             const speedFactor = 12 + Math.random() * 10
-            const flightTime = Math.abs(dx) / speedFactor
+            let flightTime = Math.abs(dx) / speedFactor
+
+            // added for moon map
+            if (GRAVITY < 0.2) {
+                flightTime *= 2.5
+            } else if (GRAVITY > 0.6) {
+                flightTime *= 0.8
+            }
 
             // Inverse Physics Formulas
             // X = x0 + vx*t + 0.5*wind*t^2  => Solve for vx

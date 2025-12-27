@@ -58,11 +58,14 @@ function generateTerrain() {
 
 function getTerrainY(x) {
   const step = 5
-  const index = Math.floor(x / step)
+  if (!terrain || terrain.length < 2) return GROUND_Y
 
-  if (index < 0 || index >= terrain.length - 1) return GROUND_Y
+  // Clamp X into valid interpolation range so index+1 exists
+  const maxX = (terrain.length - 2) * step
+  const clampedX = Math.max(0, Math.min(x, maxX))
+  const index = Math.floor(clampedX / step)
 
-  const t = (x - terrain[index].x) / step
+  const t = (clampedX - terrain[index].x) / step
   return terrain[index].y + t * (terrain[index + 1].y - terrain[index].y)
 }
 
@@ -87,8 +90,11 @@ function drawTerrain() {
 }
 
 function drawTank(tank) {
-  const groundLeft = getTerrainY(tank.x)
-  const groundRight = getTerrainY(tank.x + tank.width)
+  // Clamp sampling near edges to avoid extreme slopes causing tweaks
+  const sampleLeftX = Math.max(0, Math.min(tank.x, canvas.value.width - 5))
+  const sampleRightX = Math.max(5, Math.min(tank.x + tank.width, canvas.value.width - 5))
+  const groundLeft = getTerrainY(sampleLeftX)
+  const groundRight = getTerrainY(sampleRightX)
   const angle = Math.atan2(groundRight - groundLeft, tank.width)
 
   ctx.save()
