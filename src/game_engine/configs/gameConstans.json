@@ -1,14 +1,19 @@
 {
     "GROUND_Y_FACTOR": 0.7,
     "TERRAIN_COLOR": "#654321",
+    "BACKGROUND_COLOR": "#5f9ab1",
     "TERRAIN_DIVERSITY": 8,
     "GRAVITY": 0.5,
     "TANK_WIDTH": 60,
     "TANK_HEIGHT": 30,
     "TANK_SPEED": 2,
-    "POWER_SCALE": 0.04, 
+    "POWER_SCALE": 0.04,
     "DIFFICULTY": 1,
     "MAX_FUEL": 290,
     "WIND_SPEED_RANDOM": true,
-    "WIND_SPEED_FIXED": 0
+    "WIND_SPEED_FIXED": 0,
+    "PLAYER_TANK_COLOR": "#2E8B57",
+    "ENEMY_TANK_COLOR": "#DC143C",
+    "PROJECTILE_COLOR": "#ff0000",
+    "TRAJECTORY_COLOR": "#ffffff80"
 }

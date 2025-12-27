@@ -4,16 +4,50 @@
         "name": "romantic sunset",
         "GROUND_Y_FACTOR": 0.7,
         "TERRAIN_COLOR": "#43791fff",
-        "BACKGROUND_COLOR": "background: radial-gradient(circle, rgba(255, 241, 51, 1) 0%, rgba(255, 187, 61, 1) 20%, rgba(255, 145, 89, 1) 36%, rgba(255, 119, 51, 1) 48%, rgba(232, 110, 49, 1) 60%, rgba(209, 79, 23, 1) 76%)",
-        "TERRAIN_DIVERSITY": 3,
+        "BACKGROUND_COLOR": "radial-gradient(circle, rgba(255, 241, 51, 1) 0%, rgba(255, 187, 61, 1) 20%, rgba(255, 145, 89, 1) 36%, rgba(255, 119, 51, 1) 48%, rgba(232, 110, 49, 1) 60%, rgba(209, 79, 23, 1) 76%)",
+        "TERRAIN_DIVERSITY": 2,
         "GRAVITY": 0.5,
         "TANK_WIDTH": 60,
         "TANK_HEIGHT": 30,
         "TANK_SPEED": 2,
-        "POWER_SCALE": 0.04, 
-        "DIFFICULTY": 0.5,
+        "POWER_SCALE": 0.04,
+        "DIFFICULTY": 0.4,
         "MAX_FUEL": 320,
         "WIND_SPEED_RANDOM": false,
-        "WIND_SPEED_FIXED": 0
+        "WIND_SPEED_FIXED": 0,
+        "PLAYER_TANK_COLOR": "#2E8B57",
+        "ENEMY_TANK_COLOR": "#89001b",
+        "PROJECTILE_COLOR": "#000000",
+        "TRAJECTORY_COLOR": "#000000"
+    },
+
+    {
+        "id": 2,
+        "name": "moon",
+        "GROUND_Y_FACTOR": 0.7,
+        "TERRAIN_COLOR": "#bfbfbf",
+        "BACKGROUND_COLOR": "radial-gradient(ellipse at 50% 60%, rgba(255,255,255,0.06) 0%, transparent 60%), radial-gradient(circle at 8% 12%, rgba(255,255,255,0.9) 0.8px, transparent 1.6px), radial-gradient(circle at 16% 42%, rgba(255,255,255,0.8) 1px, transparent 2px), radial-gradient(circle at 28% 18%, rgba(255,255,255,0.85) 0.9px, transparent 1.8px), radial-gradient(circle at 35% 72%, rgba(255,255,255,0.85) 1px, transparent 2px), radial-gradient(circle at 47% 25%, rgba(255,255,255,0.9) 1px, transparent 2px), radial-gradient(circle at 58% 12%, rgba(255,255,255,0.75) 0.8px, transparent 1.6px), radial-gradient(circle at 66% 40%, rgba(255,255,255,0.85) 1px, transparent 2px), radial-gradient(circle at 72% 78%, rgba(255,255,255,0.8) 1px, transparent 2px), radial-gradient(circle at 84% 22%, rgba(255,255,255,0.9) 1.2px, transparent 2.4px), radial-gradient(circle at 90% 60%, rgba(255,255,255,0.8) 0.9px, transparent 1.8px), radial-gradient(circle at 12% 75%, rgba(255,255,255,0.85) 1px, transparent 2px), radial-gradient(circle at 32% 50%, rgba(255,255,255,0.7) 0.8px, transparent 1.6px), radial-gradient(circle at 54% 66%, rgba(255,255,255,0.85) 1px, transparent 2px), radial-gradient(circle at 76% 34%, rgba(255,255,255,0.9) 1px, transparent 2px), linear-gradient(to bottom, #0b0f1c 0%, #0e1330 40%, #162040 100%)",
+        "TERRAIN_DIVERSITY": 4,
+        "GRAVITY": 0.1,
+        "TANK_WIDTH": 60,
+        "TANK_HEIGHT": 30,
+        "TANK_SPEED": 2,
+        "POWER_SCALE": 0.04,
+        "DIFFICULTY": 4,
+        "MAX_FUEL": 320,
+        "WIND_SPEED_RANDOM": false,
+        "WIND_SPEED_FIXED": 0,
+        "PLAYER_TANK_COLOR": "#2bc16c",
+        "ENEMY_TANK_COLOR": "#ff0000",
+        "PROJECTILE_COLOR": "#ff0033",
+        "TRAJECTORY_COLOR": "#ffffff80"
+    },
+
+    {
+        "id": 3,
+        "name": "desert storm",
+        "GROUND_Y_FACTOR": 0.75,
+        "TERRAIN_COLOR": "#f3e087",
+        "BACKGROUND_COLOR": "linear-gradient(180deg, rgba(255, 223, 128, 1) 0%, rgba(255, 183, 76, 1) 50%, rgba(194, 123, 0, 1) 100%)"
     }
 ]

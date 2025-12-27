@@ -1,12 +1,12 @@
 <template>
   <section class="landing">
-    
+
 
     <div class="content">
       <h1>Tanks</h1>
 
       <nav class="menu">
-        <RouterLink to="/game">Quick play</RouterLink>
+        <button class="menu-btn" @click="startQuickPlay">Quick play</button>
         <RouterLink to="/levels">Levels</RouterLink>
         <RouterLink to="/how-to-play">How to play</RouterLink>
         <RouterLink to="/stats">Stats</RouterLink>
@@ -14,6 +14,21 @@
     </div>
   </section>
 </template>
+
+<script setup>
+import { useRouter } from 'vue-router'
+import levelsData from '@/game_engine/configs/levels.json'
+
+const router = useRouter()
+
+function startQuickPlay() {
+  const levels = Array.isArray(levelsData) ? levelsData : []
+  const random = levels.length
+    ? levels[Math.floor(Math.random() * levels.length)].id
+    : 1
+  router.push(`/game/${random}`)
+}
+</script>
 
 
 <style scoped>
@@ -66,6 +81,35 @@
     border-color 0.25s ease,
     transform 0.15s ease,
     box-shadow 0.25s ease;
+}
+
+/* Make the button look like menu links */
+.menu .menu-btn {
+  width: 240px;
+  padding: 14px 24px;
+  background: rgba(10, 20, 15, 0.75);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(80, 140, 100, 0.6);
+  border-radius: 10px;
+  color: #e8f5e9;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-align: center;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.15s ease,
+    box-shadow 0.25s ease;
+}
+
+.menu .menu-btn:hover {
+  background: rgba(20, 40, 30, 0.9);
+  border-color: #64ffda;
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.5),
+    0 0 15px rgba(100, 255, 218, 0.25);
 }
 
 /* HOVER / FOCUS */

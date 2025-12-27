@@ -1,11 +1,22 @@
 <script setup>
 import { onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { initGame } from './engine.js';
+import levelsData from './configs/levels.json';
 
 let gameControls = null;
+const route = useRoute();
 
-onMounted(async () => {
-    gameControls = await initGame();
+onMounted(() => {
+    const id = route.params.id;
+    let overrides = {};
+
+    if (id) {
+        const found = levelsData.find(l => String(l.id) === String(id));
+        overrides = found || {};
+    }
+
+    gameControls = initGame(overrides);
 });
 
 const triggerRestart = () => {
@@ -69,7 +80,6 @@ button {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    background: #5f9ab1;
 }
 
 * {
@@ -80,7 +90,6 @@ button {
 
 body {
     font-family: Arial, sans-serif;
-    background: #5f9ab1;
     overflow: hidden;
     user-select: none;
 }
