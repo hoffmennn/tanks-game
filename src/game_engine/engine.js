@@ -26,6 +26,10 @@ export function initGame(level = {}) {
         : config.WIND_SPEED_FIXED /*-1 will make 100 m/s to the left, +1 will make 100 m/s to the right*/
 
     let terrain = []
+    let terrainSurfacePath = null
+    let terrainFillPath = null
+    let animationId = null
+    let running = false
     let isPlayerTurn = true
     let canShoot = true
     let keysPressed = {}
@@ -50,6 +54,22 @@ export function initGame(level = {}) {
 
             y = Math.max(100, Math.min(canvas.height - 50, y))
             terrain.push({ x, y })
+        }
+
+        if (terrain.length > 0) {
+            const surfacePath = new Path2D()
+            surfacePath.moveTo(0, terrain[0].y)
+            for (let point of terrain) {
+                surfacePath.lineTo(point.x, point.y)
+            }
+
+            const fillPath = new Path2D(surfacePath)
+            fillPath.lineTo(canvas.width, canvas.height)
+            fillPath.lineTo(0, canvas.height)
+            fillPath.closePath()
+
+            terrainSurfacePath = surfacePath
+            terrainFillPath = fillPath
         }
     }
     // AI fix:
@@ -155,23 +175,14 @@ export function initGame(level = {}) {
     let gameActive = true
 
     function drawTerrain() {
-        const surfacePath = new Path2D()
-        surfacePath.moveTo(0, terrain[0].y)
-        for (let point of terrain) {
-            surfacePath.lineTo(point.x, point.y)
-        }
-
-        const fillPath = new Path2D(surfacePath)
-        fillPath.lineTo(canvas.width, canvas.height)
-        fillPath.lineTo(0, canvas.height)
-        fillPath.closePath()
+        if (!terrainSurfacePath || !terrainFillPath) return
 
         ctx.fillStyle = TERRAIN_COLOR
-        ctx.fill(fillPath)
+        ctx.fill(terrainFillPath)
 
         ctx.strokeStyle = '#4a3319'
         ctx.lineWidth = 3
-        ctx.stroke(surfacePath)
+        ctx.stroke(terrainSurfacePath)
     }
 
     function drawTank(tank) {
@@ -367,7 +378,6 @@ export function initGame(level = {}) {
                 (dx - 0.5 * WIND_SPEED * (Math.pow(flightTime, 2) + flightTime)) / flightTime
             let bestVy = (dy - 0.5 * GRAVITY * (Math.pow(flightTime, 2) - flightTime)) / flightTime
 
-            // Without this, the AI will never miss.
             const errorMargin = 1.65
             bestVx += ((Math.random() - 0.5) * errorMargin) / DIFFICULTY
             bestVy += ((Math.random() - 0.5) * errorMargin) / DIFFICULTY
@@ -562,18 +572,17 @@ export function initGame(level = {}) {
         }
 
         draw()
-        requestAnimationFrame(gameLoop)
+        animationId = requestAnimationFrame(gameLoop)
     }
 
-    window.addEventListener('keydown', (e) => {
+    const handleKeyDown = (e) => {
         keysPressed[e.key] = true
-    })
-
-    window.addEventListener('keyup', (e) => {
+    }
+    const handleKeyUp = (e) => {
         keysPressed[e.key] = false
-    })
+    }
 
-    canvas.addEventListener('mousedown', (e) => {
+    const handleMouseDown = (e) => {
         if (!gameActive || !isPlayerTurn || !canShoot) return
 
         const rect = canvas.getBoundingClientRect()
@@ -585,9 +594,9 @@ export function initGame(level = {}) {
             y: playerTank.y,
         }
         dragCurrent = { x, y }
-    })
+    }
 
-    canvas.addEventListener('mousemove', (e) => {
+    const handleMouseMove = (e) => {
         if (!gameActive || !isPlayerTurn || !canShoot) return
 
         const rect = canvas.getBoundingClientRect()
@@ -601,9 +610,9 @@ export function initGame(level = {}) {
             const velY = (y - dragStart.y) * POWER_SCALE
             trajectoryPoints = calculateTrajectory(dragStart.x, dragStart.y, velX, velY)
         }
-    })
+    }
 
-    canvas.addEventListener('mouseup', (e) => {
+    const handleMouseUp = () => {
         if (!gameActive || !isPlayerTurn || !canShoot) return
 
         if (dragStart && dragCurrent) {
@@ -612,9 +621,9 @@ export function initGame(level = {}) {
             dragCurrent = null
             trajectoryPoints = []
         }
-    })
+    }
 
-    window.addEventListener('resize', () => {
+    const handleResize = () => {
         const oldWidth = canvas.width
         canvas.width = window.innerWidth
         canvas.height = window.innerHeight
@@ -625,11 +634,39 @@ export function initGame(level = {}) {
         generateTerrain()
         enemyTank.y = getTerrainY(enemyTank.x + TANK_WIDTH / 2) - TANK_HEIGHT
         playerTank.y = getTerrainY(playerTank.x + TANK_WIDTH / 2) - TANK_HEIGHT
-    })
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    canvas.addEventListener('mousedown', handleMouseDown)
+    canvas.addEventListener('mousemove', handleMouseMove)
+    canvas.addEventListener('mouseup', handleMouseUp)
+    window.addEventListener('resize', handleResize)
 
     // Start the game
     restartGame()
-    gameLoop()
+    if (!running) {
+        running = true
+        animationId = requestAnimationFrame(gameLoop)
+    }
 
-    return { restartGame }
+    function destroy() {
+        running = false
+        if (animationId) cancelAnimationFrame(animationId)
+        window.removeEventListener('keydown', handleKeyDown)
+        window.removeEventListener('keyup', handleKeyUp)
+        canvas.removeEventListener('mousedown', handleMouseDown)
+        canvas.removeEventListener('mousemove', handleMouseMove)
+        canvas.removeEventListener('mouseup', handleMouseUp)
+        window.removeEventListener('resize', handleResize)
+        terrain = []
+        terrainSurfacePath = null
+        terrainFillPath = null
+        projectiles = []
+        dragStart = null
+        dragCurrent = null
+        trajectoryPoints = []
+    }
+
+    return { restartGame, destroy }
 }

@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { initGame } from './engine.js';
 import levelsData from './configs/levels.json';
@@ -9,14 +9,20 @@ const route = useRoute();
 
 onMounted(() => {
     const id = route.params.id;
-    let overrides = {};
+    let level_selected = {};
 
     if (id) {
         const found = levelsData.find(l => String(l.id) === String(id));
-        overrides = found || {};
+        level_selected = found || {};
     }
 
-    gameControls = initGame(overrides);
+    gameControls = initGame(level_selected);
+});
+
+onUnmounted(() => {
+    if (gameControls && gameControls.destroy) {
+        gameControls.destroy();
+    }
 });
 
 const triggerRestart = () => {
