@@ -10,23 +10,27 @@ export function initGame(level = {}) {
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
 
-    const GROUND_Y = canvas.height * config.GROUND_Y_FACTOR
+    let SCALE_FACTOR = canvas.width / 1263 // when you log canvas.width at my 1920px 13 inch yoga c640 screeen, it shows 1263. im not sure of this number
+
+    let GROUND_Y = canvas.height * config.GROUND_Y_FACTOR
     canvas.style.background = config.BACKGROUND_COLOR || '#5f9ab1'
     const TERRAIN_COLOR = config.TERRAIN_COLOR
     const TERRAIN_DIVERSITY = config.TERRAIN_DIVERSITY
-    const GRAVITY = config.GRAVITY
-    const TANK_WIDTH = config.TANK_WIDTH
-    const TANK_HEIGHT = config.TANK_HEIGHT
-    const TANK_SPEED = config.TANK_SPEED
-    let POWER_SCALE = config.POWER_SCALE * Math.sqrt(1920 / canvas.width)
+    let GRAVITY = config.GRAVITY * SCALE_FACTOR
+    let TANK_WIDTH = config.TANK_WIDTH * SCALE_FACTOR
+    let TANK_HEIGHT = config.TANK_HEIGHT * SCALE_FACTOR
+    let TERRAIN_STEP = 5 * SCALE_FACTOR
+    let TANK_SPEED = config.TANK_SPEED * SCALE_FACTOR
+    const POWER_SCALE = config.POWER_SCALE
     const DIFFICULTY = config.DIFFICULTY // 0.5 - easy, 1 - medium, 2 - hard
-    const MAX_FUEL = config.MAX_FUEL // Pixels of movement per turn
+    let MAX_FUEL = config.MAX_FUEL * SCALE_FACTOR // Pixels of movement per turn
     const WIND_SPEED_RANDOM = config.WIND_SPEED_RANDOM
-    let WIND_SPEED = WIND_SPEED_RANDOM
-        ? (Math.random() - 0.5) * 0.4
-        : config.WIND_SPEED_FIXED /*-1 will make 100 m/s to the left, +1 will make 100 m/s to the right*/
+    let BASE_WIND = 0
+    let WIND_SPEED = 0 // gets managed in generateWind() function
 
     let terrain = []
+    let terrainPhase1 = Math.random() * 100 // TODO: check if needs scaling
+    let terrainPhase2 = Math.random() * 100
     let terrainSurfacePath = null
     let terrainFillPath = null
     let animationId = null
@@ -38,22 +42,19 @@ export function initGame(level = {}) {
     function generateTerrain() {
         terrain = []
 
-        const phase1 = Math.random() * 100
-        const phase2 = Math.random() * 100
-
         // scale amplitudes based on diversity
-        const largeHillAmplitude = TERRAIN_DIVERSITY * 12 // max ~120
-        const smallBumpAmplitude = TERRAIN_DIVERSITY * 4 // max ~40
+        const largeHillAmplitude = TERRAIN_DIVERSITY * 12 * SCALE_FACTOR
+        const smallBumpAmplitude = TERRAIN_DIVERSITY * 4 * SCALE_FACTOR
 
-        for (let x = 0; x <= canvas.width; x += 5) {
+        for (let x = 0; x <= canvas.width; x += TERRAIN_STEP) {
             let y = GROUND_Y
 
             if (TERRAIN_DIVERSITY > 0) {
-                y += Math.sin(x * 0.006 + phase1) * largeHillAmplitude //TODO: urobit frekvenciu zavislu od sirky obrazovky a dat do premennej
-                y += Math.sin(x * 0.02 + phase2) * smallBumpAmplitude // TODO: to iste
+                y += Math.sin((x * 0.006) / SCALE_FACTOR + terrainPhase1) * largeHillAmplitude //TODO: urobit frekvenciu zavislu od sirky obrazovky a dat do premennej
+                y += Math.sin((x * 0.02) / SCALE_FACTOR + terrainPhase2) * smallBumpAmplitude // TODO: to iste
             }
 
-            y = Math.max(100, Math.min(canvas.height - 50, y))
+            y = Math.max(100 * SCALE_FACTOR, Math.min(canvas.height - 40 * SCALE_FACTOR, y))
             terrain.push({ x, y })
         }
 
@@ -73,48 +74,9 @@ export function initGame(level = {}) {
             terrainFillPath = fillPath
         }
     }
-    // AI fix:
-    // function generateTerrain() {
-    //     terrain = [];
-    //     const phase1 = Math.random() * 100;
-    //     const phase2 = Math.random() * 100;
-
-    //     // --- VERTICAL FIT (From previous answer) ---
-    //     let currentGroundY = GROUND_Y;
-    //     if (TERRAIN_DIVERSITY > 5) currentGroundY = canvas.height * 0.6;
-
-    //     const spaceAbove = currentGroundY - 50;
-    //     const spaceBelow = (canvas.height - 50) - currentGroundY;
-    //     const maxSafeAmplitude = Math.min(spaceAbove, spaceBelow);
-
-    //     // Scale height based on diversity
-    //     let desiredAmplitude = TERRAIN_DIVERSITY * 20;
-    //     const actualAmplitude = Math.min(desiredAmplitude, maxSafeAmplitude);
-
-    //     // --- HORIZONTAL FIT (New Mobile Fix) ---
-    //     // Instead of fixed 0.006, we calculate frequency based on screen width.
-    //     // This formula ensures we always see ~1.5 big hills per screen width.
-    //     // Math.PI * 2 represents one full sine wave cycle.
-    //     const waveCyclesPerScreen = 1.5;
-    //     const frequency = (Math.PI * 2 * waveCyclesPerScreen) / canvas.width;
-
-    //     for (let x = 0; x <= canvas.width; x += 5) {
-    //         let y = currentGroundY;
-
-    //         if (TERRAIN_DIVERSITY > 0) {
-    //             // Use the calculated 'frequency' instead of 0.006
-    //             y += Math.sin(x * frequency + phase1) * (actualAmplitude * 0.8);
-
-    //             // For the small bumps, we just multiply the base freq by ~3
-    //             y += Math.sin(x * (frequency * 3.5) + phase2) * (actualAmplitude * 0.2);
-    //         }
-
-    //         terrain.push({ x, y });
-    //     }
-    // }
 
     function getTerrainY(x) {
-        const step = 5
+        const step = TERRAIN_STEP
         const index = Math.floor(x / step)
 
         if (index < 0 || index >= terrain.length - 1) return GROUND_Y
@@ -124,9 +86,11 @@ export function initGame(level = {}) {
     }
 
     function generateWind() {
-        WIND_SPEED = WIND_SPEED_RANDOM ? (Math.random() - 0.5) * 0.4 : config.WIND_SPEED_FIXED
+        BASE_WIND = WIND_SPEED_RANDOM ? (Math.random() - 0.5) * 0.5 : config.WIND_SPEED_FIXED
 
-        document.getElementById('windValue').textContent = Math.abs(WIND_SPEED * 100).toFixed(0)
+        WIND_SPEED = BASE_WIND * SCALE_FACTOR
+
+        document.getElementById('windValue').textContent = Math.abs(BASE_WIND * 100).toFixed(0)
 
         const arrow = document.getElementById('windArrow')
         if (WIND_SPEED > 0) {
@@ -146,8 +110,8 @@ export function initGame(level = {}) {
     // generateWind();
 
     let playerTank = {
-        x: 100,
-        y: getTerrainY(100 + TANK_WIDTH / 2) - TANK_HEIGHT,
+        x: 100 * SCALE_FACTOR,
+        y: getTerrainY(100 * SCALE_FACTOR + TANK_WIDTH / 2) - TANK_HEIGHT,
         width: TANK_WIDTH,
         height: TANK_HEIGHT,
         hp: 100,
@@ -157,8 +121,8 @@ export function initGame(level = {}) {
     }
 
     let enemyTank = {
-        x: canvas.width - 150,
-        y: getTerrainY(canvas.width - 150 + TANK_WIDTH / 2) - TANK_HEIGHT,
+        x: canvas.width - 150 * SCALE_FACTOR,
+        y: getTerrainY(canvas.width - 150 * SCALE_FACTOR + TANK_WIDTH / 2) - TANK_HEIGHT,
         width: TANK_WIDTH,
         height: TANK_HEIGHT,
         hp: 100,
@@ -182,15 +146,18 @@ export function initGame(level = {}) {
         ctx.fill(terrainFillPath)
 
         ctx.strokeStyle = '#4a3319'
-        ctx.lineWidth = 3
+        ctx.lineWidth = 3 * SCALE_FACTOR
         ctx.stroke(terrainSurfacePath)
     }
 
     function drawTank(tank) {
         // vypocet uhla podla terenu
         // Clamp sampling near edges to avoid extreme slopes causing twists
-        const sampleLeftX = Math.max(0, Math.min(tank.x, canvas.width - 5))
-        const sampleRightX = Math.max(5, Math.min(tank.x + tank.width, canvas.width - 5))
+        const sampleLeftX = Math.max(0, Math.min(tank.x, canvas.width - 5 * SCALE_FACTOR))
+        const sampleRightX = Math.max(
+            5 * SCALE_FACTOR,
+            Math.min(tank.x + tank.width, canvas.width - 5 * SCALE_FACTOR),
+        )
         const groundLeft = getTerrainY(sampleLeftX)
         const groundRight = getTerrainY(sampleRightX)
         const angle = Math.atan2(groundRight - groundLeft, tank.width)
@@ -214,46 +181,52 @@ export function initGame(level = {}) {
         ctx.fillStyle = '#2c2c2c'
         ctx.beginPath()
         if (ctx.roundRect) {
-            ctx.roundRect(0, tank.height - 10, tank.width, 10, 5)
+            ctx.roundRect(
+                0,
+                tank.height - 10 * SCALE_FACTOR,
+                tank.width,
+                10 * SCALE_FACTOR,
+                5 * SCALE_FACTOR,
+            )
         } else {
-            ctx.fillRect(0, tank.height - 10, tank.width, 10)
+            ctx.fillRect(0, tank.height - 10 * SCALE_FACTOR, tank.width, 10 * SCALE_FACTOR)
         }
         ctx.fill()
 
         // kolesa na pasoch
         ctx.fillStyle = '#555'
         ctx.beginPath()
-        for (let i = 6; i < tank.width; i += 12) {
-            ctx.moveTo(i + 3, tank.height - 5)
-            ctx.arc(i, tank.height - 5, 3, 0, Math.PI * 2)
+        for (let i = 6 * SCALE_FACTOR; i < tank.width; i += 12 * SCALE_FACTOR) {
+            ctx.moveTo(i + 3 * SCALE_FACTOR, tank.height - 5 * SCALE_FACTOR)
+            ctx.arc(i, tank.height - 5 * SCALE_FACTOR, 3 * SCALE_FACTOR, 0, Math.PI * 2)
         }
         ctx.fill()
 
         // telo tanku
         ctx.fillStyle = tank.color
         ctx.beginPath()
-        ctx.moveTo(5, tank.height - 10)
-        ctx.lineTo(tank.width - 5, tank.height - 10)
-        ctx.lineTo(tank.width - 10, tank.height - 22)
-        ctx.lineTo(10, tank.height - 22)
+        ctx.moveTo(5 * SCALE_FACTOR, tank.height - 10 * SCALE_FACTOR)
+        ctx.lineTo(tank.width - 5 * SCALE_FACTOR, tank.height - 10 * SCALE_FACTOR)
+        ctx.lineTo(tank.width - 10 * SCALE_FACTOR, tank.height - 22 * SCALE_FACTOR)
+        ctx.lineTo(10 * SCALE_FACTOR, tank.height - 22 * SCALE_FACTOR)
         ctx.closePath()
         ctx.fill()
 
         // vezicka tanku
         ctx.beginPath()
-        ctx.arc(tank.width / 2, tank.height - 22, 9, Math.PI, 0)
+        ctx.arc(tank.width / 2, tank.height - 22 * SCALE_FACTOR, 9 * SCALE_FACTOR, Math.PI, 0)
         ctx.fill()
 
         // hlaven - delo
         ctx.strokeStyle = '#1a1a1a'
-        ctx.lineWidth = 4
+        ctx.lineWidth = 4 * SCALE_FACTOR
         ctx.lineCap = 'round'
         ctx.beginPath()
-        ctx.moveTo(tank.width / 2, tank.height - 25)
+        ctx.moveTo(tank.width / 2, tank.height - 25 * SCALE_FACTOR)
         const barrelAngle = isEnemy ? -Math.PI * 0.8 : -Math.PI * 0.2
         ctx.lineTo(
-            tank.width / 2 + Math.cos(barrelAngle) * 22,
-            tank.height - 25 + Math.sin(barrelAngle) * 22,
+            tank.width / 2 + Math.cos(barrelAngle) * 22 * SCALE_FACTOR,
+            tank.height - 25 * SCALE_FACTOR + Math.sin(barrelAngle) * 22 * SCALE_FACTOR,
         )
         ctx.stroke()
 
@@ -263,15 +236,15 @@ export function initGame(level = {}) {
     function drawProjectile(proj) {
         ctx.fillStyle = config.PROJECTILE_COLOR
         ctx.beginPath()
-        ctx.arc(proj.x, proj.y, 5, 0, Math.PI * 2)
+        ctx.arc(proj.x, proj.y, 5 * SCALE_FACTOR, 0, Math.PI * 2)
         ctx.fill()
     }
 
     function drawTrajectory() {
         if (dragStart && dragCurrent) {
             ctx.strokeStyle = config.TRAJECTORY_COLOR
-            ctx.setLineDash([5, 5])
-            ctx.lineWidth = 2
+            ctx.setLineDash([5 * SCALE_FACTOR, 5 * SCALE_FACTOR])
+            ctx.lineWidth = 2 * SCALE_FACTOR
 
             ctx.beginPath()
             ctx.moveTo(dragStart.x, dragStart.y)
@@ -369,13 +342,13 @@ export function initGame(level = {}) {
             // A lower divider means a higher, loftier arc (slower shot).
             // A higher divider means a direct, fast shot (laser).
             // Let's vary it slightly so the AI chooses different arcs.
-            const speedFactor = 12 + Math.random() * 10
+            const speedFactor = (12 + Math.random() * 10) * SCALE_FACTOR
             let flightTime = Math.abs(dx) / speedFactor
 
             // added for moon map
-            if (GRAVITY < 0.2) {
+            if (config.GRAVITY < 0.2) {
                 flightTime *= 2.5
-            } else if (GRAVITY > 0.6) {
+            } else if (config.GRAVITY > 0.6) {
                 flightTime *= 0.8
             }
 
@@ -392,7 +365,7 @@ export function initGame(level = {}) {
                 (dx - 0.5 * WIND_SPEED * (Math.pow(flightTime, 2) + flightTime)) / flightTime
             let bestVy = (dy - 0.5 * GRAVITY * (Math.pow(flightTime, 2) - flightTime)) / flightTime
 
-            const errorMargin = 1.65
+            const errorMargin = 1.65 * SCALE_FACTOR
             bestVx += ((Math.random() - 0.5) * errorMargin) / DIFFICULTY
             bestVy += ((Math.random() - 0.5) * errorMargin) / DIFFICULTY
 
@@ -516,17 +489,20 @@ export function initGame(level = {}) {
     }
 
     function restartGame() {
+        terrainPhase1 = Math.random() * 100 // TODO: check if needs scaling
+        terrainPhase2 = Math.random() * 100
         generateTerrain()
+
         generateWind()
 
         playerTank.fuel = MAX_FUEL
         enemyTank.fuel = MAX_FUEL
         playerTank.hp = 100
         enemyTank.hp = 100
-        playerTank.x = 100
-        playerTank.y = getTerrainY(100 + TANK_WIDTH / 2) - TANK_HEIGHT
-        enemyTank.x = canvas.width - 150
-        enemyTank.y = getTerrainY(canvas.width - 150 + TANK_WIDTH / 2) - TANK_HEIGHT
+        playerTank.x = 100 * SCALE_FACTOR
+        playerTank.y = getTerrainY(100 * SCALE_FACTOR + TANK_WIDTH / 2) - TANK_HEIGHT
+        enemyTank.x = canvas.width - 150 * SCALE_FACTOR
+        enemyTank.y = getTerrainY(canvas.width - 150 * SCALE_FACTOR + TANK_WIDTH / 2) - TANK_HEIGHT
         projectiles = []
         gameActive = true
         isPlayerTurn = true
@@ -644,17 +620,47 @@ export function initGame(level = {}) {
         }
     }
 
-    const handleResize = () => {
-        const oldWidth = canvas.width
+    function recalculatePhysics() {
+        const oldScale = SCALE_FACTOR || window.innerWidth / 1263
+
         canvas.width = window.innerWidth
         canvas.height = window.innerHeight
 
-        POWER_SCALE = config.POWER_SCALE * Math.sqrt(1920 / canvas.width)
+        SCALE_FACTOR = canvas.width / 1263
 
-        const scale = canvas.width / oldWidth
-        enemyTank.x = canvas.width - 150
+        GROUND_Y = canvas.height * config.GROUND_Y_FACTOR
+        GRAVITY = config.GRAVITY * SCALE_FACTOR
+        TANK_WIDTH = config.TANK_WIDTH * SCALE_FACTOR
+        TANK_HEIGHT = config.TANK_HEIGHT * SCALE_FACTOR
+        TANK_SPEED = config.TANK_SPEED * SCALE_FACTOR
+        MAX_FUEL = config.MAX_FUEL * SCALE_FACTOR
+        TERRAIN_STEP = 5 * SCALE_FACTOR
+        WIND_SPEED = BASE_WIND * SCALE_FACTOR
+
+        const ratio = SCALE_FACTOR / oldScale
+        playerTank.x *= ratio
+        playerTank.y = getTerrainY(playerTank.x + TANK_WIDTH / 2) - TANK_HEIGHT
+        enemyTank.x *= ratio
+        enemyTank.y = getTerrainY(enemyTank.x + TANK_WIDTH / 2) - TANK_HEIGHT
+
+        projectiles.forEach((proj) => {
+            proj.x *= ratio
+            proj.y *= ratio
+            proj.vx *= ratio
+            proj.vy *= ratio
+        })
+    }
+
+    const handleResize = () => {
+        recalculatePhysics()
 
         generateTerrain()
+
+        playerTank.width = TANK_WIDTH
+        playerTank.height = TANK_HEIGHT
+        enemyTank.width = TANK_WIDTH
+        enemyTank.height = TANK_HEIGHT
+
         enemyTank.y = getTerrainY(enemyTank.x + TANK_WIDTH / 2) - TANK_HEIGHT
         playerTank.y = getTerrainY(playerTank.x + TANK_WIDTH / 2) - TANK_HEIGHT
     }
