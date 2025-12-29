@@ -1,4 +1,5 @@
 import baseConfig from './configs/gameConstans.json'
+import { initTouchControls } from './touchController.js'
 
 export function initGame(level = {}) {
     const config = { ...baseConfig, ...level }
@@ -17,7 +18,7 @@ export function initGame(level = {}) {
     const TANK_WIDTH = config.TANK_WIDTH
     const TANK_HEIGHT = config.TANK_HEIGHT
     const TANK_SPEED = config.TANK_SPEED
-    const POWER_SCALE = config.POWER_SCALE
+    let POWER_SCALE = config.POWER_SCALE * Math.sqrt(1920 / canvas.width)
     const DIFFICULTY = config.DIFFICULTY // 0.5 - easy, 1 - medium, 2 - hard
     const MAX_FUEL = config.MAX_FUEL // Pixels of movement per turn
     const WIND_SPEED_RANDOM = config.WIND_SPEED_RANDOM
@@ -648,6 +649,8 @@ export function initGame(level = {}) {
         canvas.width = window.innerWidth
         canvas.height = window.innerHeight
 
+        POWER_SCALE = config.POWER_SCALE * Math.sqrt(1920 / canvas.width)
+
         const scale = canvas.width / oldWidth
         enemyTank.x = canvas.width - 150
 
@@ -662,6 +665,9 @@ export function initGame(level = {}) {
     canvas.addEventListener('mousemove', handleMouseMove)
     canvas.addEventListener('mouseup', handleMouseUp)
     window.addEventListener('resize', handleResize)
+
+    // Initialize touch controls for mobile devices
+    const cleanupTouchControls = initTouchControls(canvas, keysPressed)
 
     // Start the game
     restartGame()
@@ -679,6 +685,7 @@ export function initGame(level = {}) {
         canvas.removeEventListener('mousemove', handleMouseMove)
         canvas.removeEventListener('mouseup', handleMouseUp)
         window.removeEventListener('resize', handleResize)
+        cleanupTouchControls()
         terrain = []
         terrainSurfacePath = null
         terrainFillPath = null

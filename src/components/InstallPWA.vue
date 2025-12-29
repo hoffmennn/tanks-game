@@ -1,40 +1,44 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 const showInstallPrompt = ref(false)
 const deferredPrompt = ref(null)
+const isIOS = ref(false)
+const isStandalone = ref(false)
+
+const shouldShowIOSHint = computed(() => isIOS.value && !isStandalone.value)
 
 onMounted(() => {
-    // Listen for the beforeinstallprompt event
+    isStandalone.value = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+    isIOS.value = /iphone|ipad|ipod/i.test(window.navigator.userAgent)
+
+    if (isStandalone.value) {
+        showInstallPrompt.value = false
+        return
+    }
+
+    // Listen for the beforeinstallprompt event (Android/Chromium only)
     window.addEventListener('beforeinstallprompt', (e) => {
-        // Prevent the default prompt
         e.preventDefault()
-        // Store the event for later use
         deferredPrompt.value = e
-        // Show our custom install prompt
         showInstallPrompt.value = true
     })
 
-    // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-        showInstallPrompt.value = false
+    // If on iOS (no beforeinstallprompt), show manual hint
+    if (isIOS.value) {
+        showInstallPrompt.value = true
     }
 })
 
 const installPWA = async () => {
     if (!deferredPrompt.value) {
+        // iOS users must use Add to Home Screen manually
         return
     }
 
-    // Show the install prompt
     deferredPrompt.value.prompt()
-
-    // Wait for the user's response
     const { outcome } = await deferredPrompt.value.userChoice
-
     console.log(`User response to install prompt: ${outcome}`)
-
-    // Clear the deferredPrompt
     deferredPrompt.value = null
     showInstallPrompt.value = false
 }
@@ -56,10 +60,21 @@ const dismissPrompt = () => {
         <div class="install-content">
             <p>📱 Install TanksGame for the best experience!</p>
             <p class="install-subtitle">Play fullscreen without the address bar</p>
-            <div class="install-buttons">
-                <button @click="installPWA" class="install-btn">Install</button>
-                <button @click="dismissPrompt" class="dismiss-btn">Later</button>
-            </div>
+
+            <template v-if="shouldShowIOSHint">
+                <p class="install-subtitle">On iPhone/iPad: tap Share → Add to Home Screen</p>
+                <p class="install-subtitle">(iOS does not show automatic install prompts)</p>
+                <div class="install-buttons">
+                    <button @click="dismissPrompt" class="dismiss-btn">Got it</button>
+                </div>
+            </template>
+
+            <template v-else>
+                <div class="install-buttons">
+                    <button @click="installPWA" class="install-btn">Install</button>
+                    <button @click="dismissPrompt" class="dismiss-btn">Later</button>
+                </div>
+            </template>
         </div>
     </div>
 </template>
