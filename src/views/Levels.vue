@@ -1,23 +1,56 @@
 <script setup>
-  import HomeButton from '@/components/HomeButton.vue'
+import { computed } from 'vue'
+import HomeButton from '@/components/HomeButton.vue'
+import levelsData from '@/game_engine/configs/levels.json'
+import { loadProgress } from '@/services/storageHandler.js'
 
-  import levelsData from '@/game_engine/configs/levels.json'
-  const levels = levelsData; 
+const progress = loadProgress()
+
+const levels = computed(() => {
+  return levelsData.map(level => {
+    const levelProgress = progress[level.id] || { unlocked: false }
+
+    return {
+      ...level,
+      unlocked: levelProgress.unlocked
+    }
+  })
+})
 </script>
 
 <template>
   <div class="levels-page">
     <HomeButton />
+
     <div class="levels-grid">
-      <div v-for="level in levels" :key="level.id" class="level-card">
+      <div
+        v-for="level in levels"
+        :key="level.id"
+        class="level-card"
+        :class="{ locked: !level.unlocked }"
+      >
         <h3>{{ level.name }}</h3>
-        <router-link :to="'/game/' + level.id">
-          <button class="play-button">Hrať Level {{ level.id }}</button>
+
+        <!-- ODOMKNUTÝ LEVEL -->
+        <router-link
+          v-if="level.unlocked"
+          :to="'/game/' + level.id"
+        >
+          <button class="play-button">
+            Hrať Level {{ level.id }}
+          </button>
         </router-link>
+
+        <!-- ZAMKNUTÝ LEVEL -->
+        <div v-else class="locked-level">
+          <span class="lock-icon">🔒</span>
+          <span class="locked-text">Locked</span>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <style scoped>
 /* Kontajner pre celú stránku na vycentrovanie obsahu */

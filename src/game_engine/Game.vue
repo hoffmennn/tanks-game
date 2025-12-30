@@ -3,14 +3,20 @@ import { onMounted, onUnmounted, watch, ref } from 'vue';
 import { useRoute, useRouter  } from 'vue-router';
 import { initGame } from './engine.js';
 import levelsData from './configs/levels.json';
+import { updateLevel, unlockLevel} from '@/services/storageHandler.js'
 import '@/components/HomeButton.vue';
 import HomeButton from '@/components/HomeButton.vue';
 
 let gameControls = null;
 const route = useRoute();
 const router = useRouter();
+
 const isGameOver = ref(false)
 const playerWon = ref(false)
+
+const levelStartTime = ref(null)
+const levelFinished = ref(false)
+
 
 onMounted(() => {
     loadLevel(route.params.id);
@@ -18,10 +24,20 @@ onMounted(() => {
 
 
 onUnmounted(() => {
-    if (gameControls && gameControls.destroy) {
-        gameControls.destroy();
+    if (!levelFinished.value) {
+        const levelId = route.params.id
+
+        updateLevel(levelId, level => ({
+            ...level,
+            attempts: (level.attempts || 0) + 1
+        }))
     }
-});
+
+    if (gameControls && gameControls.destroy) {
+        gameControls.destroy()
+    }
+})
+
  
 
 watch(
@@ -31,9 +47,12 @@ watch(
     }
 ); 
 
+
 const loadLevel = (id) => {
     isGameOver.value = false
     playerWon.value = false
+    levelFinished.value = false
+    levelStartTime.value = Date.now()
 
     let level_selected = {}
 
@@ -47,21 +66,63 @@ const loadLevel = (id) => {
     }
 
     gameControls = initGame(level_selected, {
-        onGameEnd: (won) => {
-            isGameOver.value = true
-            playerWon.value = won
-        }
+        onGameEnd: handleGameEnd
     })
 }
 
+const handleGameEnd = (won) => {
+    isGameOver.value = true
+    playerWon.value = won
+    levelFinished.value = true
+
+    const levelId = route.params.id
+    const duration = Date.now() - levelStartTime.value
+
+    if (won) {
+        // win
+        updateLevel(levelId, level => ({
+            ...level,
+            attempts: (level.attempts || 0) + 1,
+            completed: true,
+            best_time: level.best_time
+              ? Math.min(level.best_time, duration)
+              : duration
+        }))
+
+        unlockNextLevel(levelId)
+    } else {
+        // loss
+        updateLevel(levelId, level => ({
+            ...level,
+            attempts: (level.attempts || 0) + 1
+        }))
+    }
+}
+
+const unlockNextLevel = (currentId) => {
+    const index = levelsData.findIndex(
+        l => String(l.id) === String(currentId)
+    )
+
+    if (index !== -1 && levelsData[index + 1]) {
+        unlockLevel(levelsData[index + 1].id)
+    }
+}
+
+
+
+
 const triggerRestart = () => {
+    levelStartTime.value = Date.now()
+    levelFinished.value = false
     isGameOver.value = false
     playerWon.value = false
 
     if (gameControls && gameControls.restartGame) {
-        gameControls.restartGame();
+        gameControls.restartGame()
     }
-};
+}
+
 
 const nextLevel = () => {
     const currentId = Number(route.params.id) || 1;
@@ -113,12 +174,6 @@ const nextLevel = () => {
             <div id="windArrow" style="font-size: 32px;">→</div>
         </div>
 
-        <!-- 
-        <div id="gameOver" class="game-over" style="display: none;">
-            <h1 id="gameOverText"></h1>
-            <button @click="triggerRestart">Play again</button>
-            <button @click="nextLevel">Next level</button>
-        </div>-->
 
         <div v-if="isGameOver" class="game-over">
             <h1 :style="{ color: playerWon ? '#00ff00' : '#ff0000' }">
