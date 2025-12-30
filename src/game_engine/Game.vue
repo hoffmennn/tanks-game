@@ -144,7 +144,7 @@ const nextLevel = () => {
         <!-- UI Overlay: pointer-events: none ensures these don't block game inputs -->
         <div id="ui" class="ui-layer">
             <div class="hp-bar">
-                <div>Hráč HP: <span id="playerHP">100</span></div>
+                <div>Player HP: <span id="playerHP">100</span></div>
                 <div class="hp-fill" id="playerHPBar" style="width: 100%"></div>
             </div>
             <div class="hp-bar">
@@ -152,7 +152,7 @@ const nextLevel = () => {
                 <div class="hp-fill" id="enemyHPBar" style="width: 100%"></div>
             </div>
             <div class="hp-bar">
-                <div>Palivo: <span id="playerFuel">100</span>%</div>
+                <div>Fuel: <span id="playerFuel">100</span>%</div>
                 <div class="hp-fill" id="playerFuelBar" style="width: 100%; background: #ffcc00;"></div>
             </div>
         </div>
@@ -160,19 +160,19 @@ const nextLevel = () => {
        <div class="top-bar ui-layer">
             <HomeButton class="game-homebutton" />
             <div id="turnIndicator" class="turn-indicator">
-                <span id="currentTurn">Na rade: HRÁČ</span>
+                <span id="currentTurn">Player's Turn</span>
             </div>
         </div>
 
         <div id="windIndicator" class="ui-layer wind-indicator">
-            <div>Vietor: <span id="windValue">0</span> m/s</div>
+            <div>Wind: <span id="windValue">0</span> m/s</div>
             <div id="windArrow" style="font-size: 32px;">→</div>
         </div>
 
 
         <div v-if="isGameOver" class="game-over">
             <h1 :style="{ color: playerWon ? '#00ff00' : '#ff0000' }">
-                {{ playerWon ? 'VÍŤAZSTVO!' : 'PREHRA!' }}
+                {{ playerWon ? 'VICTORY!' : 'DEFEAT!' }}
             </h1>
 
             <button @click="triggerRestart">Play again</button>
@@ -328,4 +328,68 @@ body {
 .game-over button:hover {
     background: #45a049;
 }
+
+
+@media (max-height: 500px) and (orientation: landscape) {
+  #ui {
+    top: 10px;
+    left: 10px;
+    font-size: 14px;
+  }
+
+  .hp-bar {
+    margin: 6px 0;
+    padding: 6px;
+  }
+
+  .hp-fill {
+    height: 12px;
+  }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  #windIndicator {
+    top: 10px;
+    right: 10px;
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+
+  #windArrow {
+    font-size: 20px;
+  }
+}
+
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .top-bar {
+    top: 5px;
+    gap: 8px;
+  }
+
+  .game-homebutton {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+
+  #turnIndicator {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .game-over {
+    padding: 20px;
+  }
+
+  .game-over h1 {
+    font-size: 28px;
+  }
+
+  .game-over button {
+    font-size: 16px;
+    padding: 8px 16px;
+  }
+}
+
 </style>

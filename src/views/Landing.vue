@@ -1,37 +1,140 @@
 <template>
   <section class="landing">
-
-
     <div class="content">
-      <h1>Tanks</h1>
+      <h1 ref="titleRef">Tanks</h1>
 
       <nav class="menu">
-        <button class="menu-btn" @click="startQuickPlay">Quick play</button>
-        <RouterLink to="/levels">Levels</RouterLink>
-        <RouterLink to="/how-to-play">How to play</RouterLink>
-        <RouterLink to="/stats">Stats</RouterLink>
+        <button class="menu-btn" @click="startPlay">Play</button>
+        <button class="menu-btn" @click="goTo('/levels')">Levels</button>
+        <button class="menu-btn" @click="goTo('/how-to-play')">How to play</button>
+        <button class="menu-btn" @click="goTo('/stats')">Stats</button>
       </nav>
     </div>
   </section>
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import levelsData from '@/game_engine/configs/levels.json'
 
 const router = useRouter()
+const titleRef = ref(null)
 
-function startQuickPlay() {
-  const levels = Array.isArray(levelsData) ? levelsData : []
-  const random = levels.length
-    ? levels[Math.floor(Math.random() * levels.length)].id
-    : 1
-  router.push(`/game/${random}`)
+const goTo = (path) => {
+  router.push(path);
+};
+
+function startPlay() {
+  const raw = localStorage.getItem('tanksGameLevels')
+
+  // fallback – ak by localStorage bolo prázdne
+  if (!raw) {
+    router.push('/game/1')
+    return
+  }
+
+  const levels = JSON.parse(raw)
+
+  // získať odomknuté levely
+  const unlockedLevels = Object.entries(levels)
+    .filter(([_, data]) => data.unlocked)
+    .map(([id]) => Number(id))
+
+  if (unlockedLevels.length === 0) {
+    router.push('/game/1')
+    return
+  }
+
+  const lastUnlocked = Math.max(...unlockedLevels)
+  router.push(`/game/${lastUnlocked}`)
 }
+
+const handleMouseMove = (e) => {
+  if (!titleRef.value) return
+  
+  const rect = titleRef.value.getBoundingClientRect()
+  const centerX = rect.left + rect.width / 2
+  const centerY = rect.top + rect.height / 2
+  
+  const deltaX = (e.clientX - centerX) / 30
+  const deltaY = (e.clientY - centerY) / 30
+  
+  titleRef.value.style.transform = `perspective(1000px) rotateY(${deltaX}deg) rotateX(${-deltaY}deg)`
+}
+
+const handleMouseLeave = () => {
+  if (!titleRef.value) return
+  titleRef.value.style.transform = 'perspective(1000px) rotateY(0deg) rotateX(0deg)'
+}
+
+onMounted(() => {
+  window.addEventListener('mousemove', handleMouseMove)
+  if (titleRef.value) {
+    titleRef.value.addEventListener('mouseleave', handleMouseLeave)
+  }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('mousemove', handleMouseMove)
+  if (titleRef.value) {
+    titleRef.value.removeEventListener('mouseleave', handleMouseLeave)
+  }
+})
 </script>
 
-
 <style scoped>
+h1 {
+  font-size: clamp(52px, 8vw, 96px);
+  font-weight: 900;
+  margin-bottom: clamp(30px, 5vh, 60px);
+  background: linear-gradient(135deg, #6d807c 0%, #28462f 50%, #28432b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 40px rgba(20, 20, 15, 0.188);
+  letter-spacing: clamp(4px, 0.8vw, 8px);
+  position: relative;
+  cursor: default;
+  animation: float 3s ease-in-out infinite;
+  transition: transform 0.1s ease-out, filter 0.3s ease;
+}
+
+h1::before {
+  content: 'TANKS';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  background: linear-gradient(135deg, #232928 0%, #50595a 50%, #2b3131 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: blur(20px);
+  opacity: 0.5;
+  z-index: -1;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  from {
+    opacity: 0.3;
+    filter: blur(15px);
+  }
+  to {
+    opacity: 0.6;
+    filter: blur(25px);
+  }
+}
+
 .landing {
   height: 100vh;
   overflow-y: auto;
@@ -40,16 +143,14 @@ function startQuickPlay() {
 .content {
   position: relative;
   z-index: 1;
-
+  margin-top: 20vh;
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-
   text-align: center;
   color: #e8f5e9;
 }
-
 
 .menu {
   display: flex;
@@ -59,8 +160,8 @@ function startQuickPlay() {
 
 /* MENU ITEM */
 .menu a {
-  width: 240px;
-  padding: 14px 24px;
+  width: clamp(200px, 30vw, 240px);
+  padding: clamp(12px, 1.5vh, 14px) clamp(20px, 3vw, 24px);
 
   background: rgba(10, 20, 15, 0.75);
   backdrop-filter: blur(6px);
@@ -69,7 +170,7 @@ function startQuickPlay() {
   border-radius: 10px;
 
   color: #e8f5e9;
-  font-size: 18px;
+  font-size: clamp(16px, 2vw, 18px);
   font-weight: 500;
   letter-spacing: 0.5px;
   text-decoration: none;
@@ -84,14 +185,14 @@ function startQuickPlay() {
 
 /* Make the button look like menu links */
 .menu .menu-btn {
-  width: 240px;
-  padding: 14px 24px;
+  width: clamp(200px, 30vw, 240px);
+  padding: clamp(12px, 1.5vh, 14px) clamp(20px, 3vw, 24px);
   background: rgba(10, 20, 15, 0.75);
   backdrop-filter: blur(6px);
   border: 1px solid rgba(80, 140, 100, 0.6);
   border-radius: 10px;
   color: #e8f5e9;
-  font-size: 18px;
+  font-size: clamp(16px, 2vw, 18px);
   font-weight: 500;
   letter-spacing: 0.5px;
   text-align: center;
@@ -133,16 +234,9 @@ function startQuickPlay() {
 }
 
 /* MOBILE */
-@media (max-width: 600px) {
-  h1 {
-    font-size: 42px;
-    margin-bottom: 30px;
-  }
-
-  .menu a {
-    width: 200px;
-    font-size: 16px;
-    padding: 12px 20px;
+@media (max-width: 1000px) {
+  .content {
+    margin-top: 5vh;
   }
 }
 </style>

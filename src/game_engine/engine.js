@@ -449,10 +449,10 @@ export function initGame(level = {}, callbacks = {}) {
     function updateTurnIndicator() {
         const indicator = document.getElementById('currentTurn')
         if (isPlayerTurn) {
-            indicator.textContent = 'Na rade: HRÁČ'
+            indicator.textContent = `Player's Turn`;
             indicator.style.color = '#00ff00'
         } else {
-            indicator.textContent = 'Na rade: PC'
+            indicator.textContent = `PC's Turn`;
             indicator.style.color = '#ff001e'
         }
     }
