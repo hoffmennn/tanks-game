@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, onUnmounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter  } from 'vue-router';
 import { initGame } from './engine.js';
 import levelsData from './configs/levels.json';
 import '@/components/HomeButton.vue';
@@ -8,6 +8,7 @@ import HomeButton from '@/components/HomeButton.vue';
 
 let gameControls = null;
 const route = useRoute();
+const router = useRouter();
 
 onMounted(() => {
     const id = route.params.id;
@@ -31,6 +32,22 @@ const triggerRestart = () => {
     if (gameControls && gameControls.restartGame) {
         gameControls.restartGame();
     }
+};
+
+const nextLevel = () => {
+    const currentId = Number(route.params.id) || 1;
+
+    const currentIndex = levelsData.findIndex(
+        l => Number(l.id) === currentId
+    );
+
+    let nextLevelId = 1;
+
+    if (currentIndex !== -1 && levelsData[currentIndex + 1]) {
+        nextLevelId = levelsData[currentIndex + 1].id;
+    }
+
+    router.push({ name: 'game', params: { id: nextLevelId } });
 };
 </script>
 
@@ -70,7 +87,8 @@ const triggerRestart = () => {
 
         <div id="gameOver" class="game-over" style="display: none;">
             <h1 id="gameOverText"></h1>
-            <button @click="triggerRestart">Hrať znova</button>
+            <button @click="triggerRestart">Play again</button>
+            <button @click="nextLevel">Next level</button>
         </div>
     </div>
 </template>
