@@ -24,14 +24,6 @@ onMounted(() => {
 
 
 onUnmounted(() => {
-    if (!levelFinished.value) {
-        const levelId = route.params.id
-
-        updateLevel(levelId, level => ({
-            ...level,
-            attempts: (level.attempts || 0) + 1
-        }))
-    }
 
     if (gameControls && gameControls.destroy) {
         gameControls.destroy()
