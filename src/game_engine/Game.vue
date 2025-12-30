@@ -44,7 +44,10 @@ const loadLevel = (id) => {
     isGameOver.value = false
     playerWon.value = false
     levelFinished.value = false
-    levelStartTime.value = Date.now()
+    
+    
+
+    
 
     let level_selected = {}
 
