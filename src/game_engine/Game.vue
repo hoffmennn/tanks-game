@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, watch, ref } from 'vue';
 import { useRoute, useRouter  } from 'vue-router';
 import { initGame } from './engine.js';
 import levelsData from './configs/levels.json';
@@ -9,26 +9,55 @@ import HomeButton from '@/components/HomeButton.vue';
 let gameControls = null;
 const route = useRoute();
 const router = useRouter();
+const isGameOver = ref(false)
+const playerWon = ref(false)
 
 onMounted(() => {
-    const id = route.params.id;
-    let level_selected = {};
-
-    if (id) {
-        const found = levelsData.find(l => String(l.id) === String(id));
-        level_selected = found || {};
-    }
-
-    gameControls = initGame(level_selected);
+    loadLevel(route.params.id);
 });
+
 
 onUnmounted(() => {
     if (gameControls && gameControls.destroy) {
         gameControls.destroy();
     }
 });
+ 
+
+watch(
+    () => route.params.id,
+    (newId) => {
+        loadLevel(newId);
+    }
+); 
+
+const loadLevel = (id) => {
+    isGameOver.value = false
+    playerWon.value = false
+
+    let level_selected = {}
+
+    if (id) {
+        const found = levelsData.find(l => String(l.id) === String(id))
+        level_selected = found || {}
+    }
+
+    if (gameControls && gameControls.destroy) {
+        gameControls.destroy()
+    }
+
+    gameControls = initGame(level_selected, {
+        onGameEnd: (won) => {
+            isGameOver.value = true
+            playerWon.value = won
+        }
+    })
+}
 
 const triggerRestart = () => {
+    isGameOver.value = false
+    playerWon.value = false
+
     if (gameControls && gameControls.restartGame) {
         gameControls.restartGame();
     }
@@ -84,11 +113,23 @@ const nextLevel = () => {
             <div id="windArrow" style="font-size: 32px;">→</div>
         </div>
 
-
+        <!-- 
         <div id="gameOver" class="game-over" style="display: none;">
             <h1 id="gameOverText"></h1>
             <button @click="triggerRestart">Play again</button>
             <button @click="nextLevel">Next level</button>
+        </div>-->
+
+        <div v-if="isGameOver" class="game-over">
+            <h1 :style="{ color: playerWon ? '#00ff00' : '#ff0000' }">
+                {{ playerWon ? 'VÍŤAZSTVO!' : 'PREHRA!' }}
+            </h1>
+
+            <button @click="triggerRestart">Play again</button>
+
+            <button v-if="playerWon" @click="nextLevel">
+                Next level
+            </button>
         </div>
     </div>
 </template>
@@ -204,8 +245,9 @@ body {
     transition: width 0.3s;
 }
 
-#gameOver {
+.game-over {
     position: absolute;
+    z-index: 5;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -214,15 +256,14 @@ body {
     padding: 40px;
     border-radius: 10px;
     text-align: center;
-    display: none;
 }
 
-#gameOver h1 {
+#game-over h1 {
     font-size: 48px;
     margin-bottom: 20px;
 }
 
-#gameOver button {
+.game-over button {
     font-size: 24px;
     padding: 15px 30px;
     background: #4CAF50;
@@ -231,9 +272,10 @@ body {
     border-radius: 5px;
     cursor: pointer;
     margin-top: 20px;
+    margin: 5px;
 }
 
-#gameOver button:hover {
+.game-over button:hover {
     background: #45a049;
 }
 </style>

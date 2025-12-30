@@ -1,7 +1,9 @@
 import baseConfig from './configs/gameConstans.json'
 import { initTouchControls } from './touchController.js'
 
-export function initGame(level = {}) {
+export function initGame(level = {}, callbacks = {}) {
+
+    const { onGameEnd } = callbacks
     const config = { ...baseConfig, ...level }
 
     const canvas = document.getElementById('gameCanvas')
@@ -480,12 +482,21 @@ export function initGame(level = {}) {
         document.getElementById('playerFuelBar').style.width = fuelPct + '%'
         document.getElementById('playerFuel').textContent = Math.floor(fuelPct)
     }
-
+    /*
     function endGame(playerWon) {
         gameActive = false
         document.getElementById('gameOverText').textContent = playerWon ? 'VÍŤAZSTVO!' : 'PREHRA!'
         document.getElementById('gameOverText').style.color = playerWon ? '#00ff00' : '#ff0000'
         document.getElementById('gameOver').style.display = 'block'
+    }
+    */
+
+    function endGame(playerWon) {
+        gameActive = false
+
+        if (typeof onGameEnd === 'function') {
+            onGameEnd(playerWon)
+        }
     }
 
     function restartGame() {
@@ -508,7 +519,7 @@ export function initGame(level = {}) {
         isPlayerTurn = true
         canShoot = true
 
-        document.getElementById('gameOver').style.display = 'none'
+        //document.getElementById('gameOver').style.display = 'none'
         document.getElementById('playerHPBar').style.background = '#00ff00'
         document.getElementById('enemyHPBar').style.background = '#00ff00'
         updateUI()
