@@ -185,14 +185,14 @@ h1::before {
 
 /* Make the button look like menu links */
 .menu .menu-btn {
-  width: clamp(200px, 30vw, 240px);
+  width: clamp(150px, 25vw, 240px);
   padding: clamp(12px, 1.5vh, 14px) clamp(20px, 3vw, 24px);
   background: rgba(10, 20, 15, 0.75);
   backdrop-filter: blur(6px);
   border: 1px solid rgba(80, 140, 100, 0.6);
   border-radius: 10px;
   color: #e8f5e9;
-  font-size: clamp(16px, 2vw, 18px);
+  font-size: clamp(10px, 2vw, 18px);
   font-weight: 500;
   letter-spacing: 0.5px;
   text-align: center;

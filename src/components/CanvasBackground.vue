@@ -16,6 +16,8 @@ const canvas = ref(null)
 let ctx
 let animationId
 let spawnInterval
+let terrainCanvas
+let terrainCtx
 
 const TERRAIN_COLOR = '#5A8C4D'
 const BASE_TANK_WIDTH = 60
@@ -44,6 +46,18 @@ watch(
     }
   }
 )
+
+let isPageVisible = true
+
+function handleVisibilityChange() {
+  isPageVisible = !document.hidden
+  if (isPageVisible && props.active) {
+    gameLoop()
+  } else {
+    cancelAnimationFrame(animationId)
+  }
+}
+
 
 function generateTerrain() {
   terrain = []
@@ -112,6 +126,8 @@ function getTerrainY(x) {
 }
 
 function drawTerrain() {
+  if (!terrain || terrain.length === 0) return
+  
   const surfacePath = new Path2D()
   surfacePath.moveTo(0, terrain[0].y)
   for (let point of terrain) {
@@ -123,12 +139,12 @@ function drawTerrain() {
   fillPath.lineTo(0, canvas.value.height)
   fillPath.closePath()
 
-  ctx.fillStyle = TERRAIN_COLOR
-  ctx.fill(fillPath)
+  terrainCtx.fillStyle = TERRAIN_COLOR
+  terrainCtx.fill(fillPath)
 
-  ctx.strokeStyle = '#4a6b3d'
-  ctx.lineWidth = 3 * SCALE_FACTOR
-  ctx.stroke(surfacePath)
+  terrainCtx.strokeStyle = '#4a6b3d'
+  terrainCtx.lineWidth = 3 * SCALE_FACTOR
+  terrainCtx.stroke(surfacePath)
 }
 
 function drawDistantMountains() {
@@ -145,12 +161,12 @@ function drawDistantMountains() {
   fillPath.lineTo(0, canvas.value.height)
   fillPath.closePath()
 
-  ctx.fillStyle = 'rgba(90, 140, 77, 0.4)'
-  ctx.fill(fillPath)
+  terrainCtx.fillStyle = 'rgba(90, 140, 77, 0.4)'
+  terrainCtx.fill(fillPath)
 
-  ctx.strokeStyle = 'rgba(74, 107, 61, 0.4)'
-  ctx.lineWidth = 2 * SCALE_FACTOR
-  ctx.stroke(mountainPath)
+  terrainCtx.strokeStyle = 'rgba(74, 107, 61, 0.4)'
+  terrainCtx.lineWidth = 2 * SCALE_FACTOR
+  terrainCtx.stroke(mountainPath)
 }
 
 function drawSun() {
@@ -284,8 +300,19 @@ function updateClouds() {
     if (cloud.x > canvas.value.width + cloud.width) {
       cloud.x = -cloud.width
       cloud.y = 50 * SCALE_FACTOR + Math.random() * 150 * SCALE_FACTOR
+      cloud.width = 60 * SCALE_FACTOR + Math.random() * 40 * SCALE_FACTOR
+      cloud.height = 30 * SCALE_FACTOR + Math.random() * 20 * SCALE_FACTOR
+      cloud.speed = 0.1 * SCALE_FACTOR + Math.random() * 0.15 * SCALE_FACTOR
     }
   }
+}
+
+function renderTerrainToBuffer() {
+  if (!terrainCanvas || !terrainCtx) return
+  
+  terrainCtx.clearRect(0, 0, terrainCanvas.width, terrainCanvas.height)
+  drawDistantMountains()
+  drawTerrain()
 }
 
 
@@ -300,8 +327,10 @@ function draw() {
   ctx.clearRect(0, 0, canvas.value.width, canvas.value.height)
   drawSun()
   drawClouds()
-  drawDistantMountains()
-  drawTerrain()
+  
+  // Nakopíruj predvykreslený terén
+  ctx.drawImage(terrainCanvas, 0, 0)
+  
   for (let tank of tanks) drawTank(tank)
 }
 
@@ -318,14 +347,27 @@ function resize() {
   canvas.value.width = window.innerWidth
   canvas.value.height = window.innerHeight
   
+  // Vytvor off-screen canvas pre terén
+  if (!terrainCanvas) {
+    terrainCanvas = document.createElement('canvas')
+  }
+  terrainCanvas.width = canvas.value.width
+  terrainCanvas.height = canvas.value.height
+  terrainCtx = terrainCanvas.getContext('2d')
+  
   SCALE_FACTOR = canvas.value.width / 1263
   GROUND_Y = canvas.value.height * 0.7
   TANK_WIDTH = BASE_TANK_WIDTH * SCALE_FACTOR
   TANK_HEIGHT = BASE_TANK_HEIGHT * SCALE_FACTOR
   TERRAIN_STEP = 5 * SCALE_FACTOR
   
+  // Najprv vygeneruj oba terény
   generateDistantMountains()
   generateTerrain()
+  
+  // Potom ich vykreslí do bufferu
+  renderTerrainToBuffer()
+  
   initClouds()
   
   // Aktualizuj existujúce tanky
@@ -344,6 +386,7 @@ onMounted(() => {
   spawnTank()
 
   window.addEventListener('resize', resize)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
   gameLoop()
 })
 
@@ -351,6 +394,7 @@ onUnmounted(() => {
   cancelAnimationFrame(animationId)
   clearInterval(spawnInterval)
   window.removeEventListener('resize', resize)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>
 
