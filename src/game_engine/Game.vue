@@ -106,7 +106,7 @@ const unlockNextLevel = (currentId) => {
 
 
 const triggerRestart = () => {
-    
+    levelStartTime.value = Date.now()
     levelFinished.value = false
     isGameOver.value = false
     playerWon.value = false
