@@ -45,10 +45,8 @@ const loadLevel = (id) => {
     playerWon.value = false
     levelFinished.value = false
     
+    levelStartTime.value = Date.now()
     
-
-    
-
     let level_selected = {}
 
     if (id) {
@@ -108,7 +106,7 @@ const unlockNextLevel = (currentId) => {
 
 
 const triggerRestart = () => {
-    levelStartTime.value = Date.now()
+    
     levelFinished.value = false
     isGameOver.value = false
     playerWon.value = false
