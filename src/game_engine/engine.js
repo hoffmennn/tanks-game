@@ -244,22 +244,24 @@ export function initGame(level = {}, callbacks = {}) {
     }
 
     function drawTrajectory() {
-        if (dragStart && dragCurrent) {
-            ctx.strokeStyle = config.TRAJECTORY_COLOR
-            ctx.setLineDash([5 * SCALE_FACTOR, 5 * SCALE_FACTOR])
-            ctx.lineWidth = 2 * SCALE_FACTOR
+            if (dragStart && dragCurrent) {
+                ctx.strokeStyle = config.TRAJECTORY_COLOR
+                ctx.setLineDash([5 * SCALE_FACTOR, 5 * SCALE_FACTOR])
+                ctx.lineWidth = 2 * SCALE_FACTOR
 
-            ctx.beginPath()
-            ctx.moveTo(dragStart.x, dragStart.y)
+                ctx.beginPath()
+                ctx.moveTo(dragStart.x, dragStart.y)
 
-            for (let point of trajectoryPoints) {
-                ctx.lineTo(point.x, point.y)
+                // Draw only half of the trajectory points
+                const halfLength = Math.floor(trajectoryPoints.length / 2)
+                for (let i = 0; i < halfLength; i++) {
+                    ctx.lineTo(trajectoryPoints[i].x, trajectoryPoints[i].y)
+                }
+
+                ctx.stroke()
+                ctx.setLineDash([])
             }
-
-            ctx.stroke()
-            ctx.setLineDash([])
         }
-    }
 
     function calculateTrajectory(startX, startY, velX, velY) {
         let points = []
