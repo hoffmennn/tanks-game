@@ -363,4 +363,10 @@ onUnmounted(() => {
   z-index: 0;
   background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%);
 }
+
+@media print {
+  .bg-canvas {
+    display: none !important;
+  }
+}
 </style>
