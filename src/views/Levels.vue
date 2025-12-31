@@ -31,17 +31,17 @@ const levels = computed(() => {
       >
         <h3>{{ level.name }}</h3>
 
-        <!-- ODOMKNUTÝ LEVEL -->
+        
         <router-link
           v-if="level.unlocked"
           :to="'/game/' + level.id"
         >
           <button class="play-button">
-            Hrať Level {{ level.id }}
+            Play Level {{ level.id }}
           </button>
         </router-link>
 
-        <!-- ZAMKNUTÝ LEVEL -->
+        
         <div v-else class="locked-level">
           <span class="lock-icon">🔒</span>
           <span class="locked-text">Locked</span>
@@ -53,27 +53,27 @@ const levels = computed(() => {
 
 
 <style scoped>
-/* Kontajner pre celú stránku na vycentrovanie obsahu */
+
 .levels-page {
   display: flex;
   flex-direction: column;
   align-items: center;
 
-  padding: 80px 20px 40px; /* miesto pre HomeButton */
+  padding: 80px 20px 40px; 
 }
 
-/* Zoradenie kariet pod seba */
+
 .levels-grid {
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Medzera medzi levelmi */
+  gap: 20px; 
   width: 100%;
-  max-width: 400px; /* Maximálna šírka zoznamu */
+  max-width: 400px; 
 }
 
-/* Štýl pre jednotlivé karty levelov */
+
 .level-card {
-  background-color: rgba(0, 0, 0, 0.75); /* Čierna s 0.75 priehľadnosťou */
+  background-color: rgba(0, 0, 0, 0.75);
   color: white;
   padding: 20px;
   border-radius: 12px;
@@ -87,9 +87,9 @@ const levels = computed(() => {
   font-size: 1.5rem;
 }
 
-/* Jednoduchý štýl pre tlačidlo */
+
 .play-button {
-  background-color: #42b983; /* Vue zelená */
+  background-color: #42b983; 
   color: white;
   border: none;
   padding: 10px 20px;

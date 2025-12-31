@@ -140,6 +140,7 @@ export function initGame(level = {}, callbacks = {}) {
     let dragCurrent = null
     let trajectoryPoints = []
     let gameActive = true
+    let playerBarrelAngle = -Math.PI * 0.2 // Default barrel angle for player
 
     function drawTerrain() {
         if (!terrainSurfacePath || !terrainFillPath) return
@@ -225,7 +226,7 @@ export function initGame(level = {}, callbacks = {}) {
         ctx.lineCap = 'round'
         ctx.beginPath()
         ctx.moveTo(tank.width / 2, tank.height - 25 * SCALE_FACTOR)
-        const barrelAngle = isEnemy ? -Math.PI * 0.8 : -Math.PI * 0.2
+        const barrelAngle = isEnemy ? -Math.PI * 0.8 : (tank === playerTank ? playerBarrelAngle : -Math.PI * 0.2)
         ctx.lineTo(
             tank.width / 2 + Math.cos(barrelAngle) * 22 * SCALE_FACTOR,
             tank.height - 25 * SCALE_FACTOR + Math.sin(barrelAngle) * 22 * SCALE_FACTOR,
@@ -518,6 +519,7 @@ export function initGame(level = {}, callbacks = {}) {
         gameActive = true
         isPlayerTurn = true
         canShoot = true
+        playerBarrelAngle = -Math.PI * 0.2
 
         //document.getElementById('gameOver').style.display = 'none'
         document.getElementById('playerHPBar').style.background = '#00ff00'
@@ -617,6 +619,11 @@ export function initGame(level = {}, callbacks = {}) {
             const velX = (x - dragStart.x) * POWER_SCALE
             const velY = (y - dragStart.y) * POWER_SCALE
             trajectoryPoints = calculateTrajectory(dragStart.x, dragStart.y, velX, velY)
+            
+            // Update barrel angle to point towards drag target
+            const dx = x - dragStart.x
+            const dy = y - dragStart.y
+            playerBarrelAngle = Math.atan2(dy, dx)
         }
     }
 
@@ -628,6 +635,8 @@ export function initGame(level = {}, callbacks = {}) {
             dragStart = null
             dragCurrent = null
             trajectoryPoints = []
+            // Reset barrel angle to default after shooting
+            playerBarrelAngle = -Math.PI * 0.2
         }
     }
 
