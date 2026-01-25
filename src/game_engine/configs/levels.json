@@ -171,5 +171,27 @@
         "ENEMY_TANK_COLOR": "#ff0033",
         "PROJECTILE_COLOR": "#ffffff",
         "TRAJECTORY_COLOR": "#ff00ff66"
+    },
+
+    {
+        "id": 9,
+        "name": "k2",
+        "GROUND_Y_FACTOR": 0.73,
+        "TERRAIN_COLOR": "#8b95a0",
+        "BACKGROUND_COLOR": "linear-gradient(to bottom, #001f4d 0%, #0047ab 30%, #87ceeb 70%, #b0c4de 100%)",
+        "TERRAIN_DIVERSITY": 17,
+        "GRAVITY": 0.5,
+        "TANK_WIDTH": 60,
+        "TANK_HEIGHT": 30,
+        "TANK_SPEED": 0.9,
+        "POWER_SCALE": 0.04,
+        "DIFFICULTY": 100,
+        "MAX_FUEL": 170,
+        "WIND_SPEED_RANDOM": false,
+        "WIND_SPEED_FIXED": 0,
+        "PLAYER_TANK_COLOR": "#1e4d7b",
+        "ENEMY_TANK_COLOR": "#6b1f1f",
+        "PROJECTILE_COLOR": "#000000",
+        "TRAJECTORY_COLOR": "#ffffff80"
     }
 ]
